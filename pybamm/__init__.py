@@ -147,6 +147,7 @@ from .models.full_battery_models import lithium_ion
 # Other models
 from .models.reaction_diffusion import ReactionDiffusionModel
 from .models.simple_ode_model import SimpleODEModel
+from .models.my_spherical_diffusion import MySphericalDiffusion
 
 #
 # Submodel classes
@@ -175,6 +176,7 @@ from .parameters import electrical_parameters
 from .parameters import thermal_parameters
 from .parameters import standard_parameters_lithium_ion, standard_parameters_lead_acid
 from .parameters.print_parameters import print_parameters, print_evaluated_parameters
+from .parameters import my_parameters
 
 #
 # Geometry
