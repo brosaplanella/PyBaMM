@@ -12,6 +12,7 @@ def electrolyte_conductivity_Capiglia1999(c_e, T, T_inf, E_k_e, R_g):
     properties of non-aqueous electrolyte solutions for rechargeable lithium batteries.
     Journal of power sources 81 (1999): 859-862.
     .. [2] http://www.cchem.berkeley.edu/jsngrp/fortran.html
+
     Parameters
     ----------
     c_e: :class: `numpy.Array`
