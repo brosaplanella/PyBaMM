@@ -36,7 +36,7 @@ current1 = pybamm.ProcessedVariable(
 # solve again with zero current, using last step of solution1 as initial conditions
 new_ics = solution1.y[:, -1][:, np.newaxis]
 model.concatenated_initial_conditons = new_ics
-import ipdb; ipdb.set_trace()
+# import ipdb; ipdb.set_trace()
 param["Current function"] = pybamm.GetConstantCurrent(current=pybamm.Scalar(0))
 param.update_model(model, disc)
 

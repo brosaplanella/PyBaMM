@@ -16,20 +16,30 @@ geometry = model.default_geometry
 data_cathode = pd.read_csv(
         pybamm.root_dir() + "/input/parameters/lithium-ion/nmc_LGM50_ocp_CC3.csv"
 )
-interpolated_OCV_cathode = interpolate.interp1d(
+# interpolated_OCV_cathode = interpolate.interp1d(
+#     data_cathode.to_numpy()[:,0], 
+#     data_cathode.to_numpy()[:,1], 
+#     bounds_error=False, 
+#     fill_value="extrapolate"
+# )
+interpolated_OCV_cathode = interpolate.PchipInterpolator(
     data_cathode.to_numpy()[:,0], 
     data_cathode.to_numpy()[:,1], 
-    bounds_error=False, 
-    fill_value="extrapolate"
+    extrapolate=True
 )
 data_anode = pd.read_csv(
     pybamm.root_dir() + "/input/parameters/lithium-ion/graphite_LGM50_ocp_CC3.csv"
 )
-interpolated_OCV_anode = interpolate.interp1d(
+# interpolated_OCV_anode = interpolate.interp1d(
+#     data_anode.to_numpy()[:,0], 
+#     data_anode.to_numpy()[:,1], 
+#     bounds_error=False, 
+#     fill_value="extrapolate"
+# )
+interpolated_OCV_anode = interpolate.PchipInterpolator(
     data_anode.to_numpy()[:,0], 
     data_anode.to_numpy()[:,1], 
-    bounds_error=False, 
-    fill_value="extrapolate"
+    extrapolate=True
 )
 
 def OCV_cathode(sto):
@@ -54,15 +64,18 @@ param.update({
     "Positive electrode diffusivity": "nmc_LGM50_diffusivity_CC3.py",
     "Negative electrode OCV entropic change": "graphite_entropic_change_Moura.py",
     "Positive electrode OCV entropic change": "lico2_entropic_change_Moura.py",
-    "Negative electrode reaction rate": "graphite_electrolyte_reaction_rate.py",
-    "Positive electrode reaction rate": "lico2_electrolyte_reaction_rate.py",
+    "Negative electrode reaction rate": "graphite_LGM50_electrolyte_reaction_rate.py",
+    "Positive electrode reaction rate": "nmc_LGM50_electrolyte_reaction_rate.py",
     "Typical current [A]": 5,
     "Current function": pybamm.GetConstantCurrent()
 })
-param["Initial concentration in negative electrode [mol.m-3]"] = 10000   #19155
-param["Initial concentration in positive electrode [mol.m-3]"] = 1120
-param["Maximum concentration in negative electrode [mol.m-3]"] = 29334
-param["Maximum concentration in positive electrode [mol.m-3]"] = 30800
+param["Initial concentration in negative electrode [mol.m-3]"] = 1.2*19155
+param["Initial concentration in positive electrode [mol.m-3]"] = 0.45*1120
+param["Maximum concentration in negative electrode [mol.m-3]"] = 24000   #29334
+param["Maximum concentration in positive electrode [mol.m-3]"] = 1.3*30800
+param["Negative electrode reference exchange-current density [A.m-2(m3.mol)1.5]"] = 1.4E-6
+param["Positive electrode reference exchange-current density [A.m-2(m3.mol)1.5]"] = 1.4E-6
+param["Lower voltage cut-off [V]"] = 2.5
 
 param.process_model(model)
 param.process_geometry(geometry)
@@ -75,17 +88,15 @@ disc = pybamm.Discretisation(mesh, model.default_spatial_methods)
 disc.process_model(model)
 
 # solve model
-model.use_jacobian = False
-t_eval = np.linspace(0, 0.1, 1000)
+#model.use_jacobian = False
+t_eval = np.linspace(0, 1, 2000)
 solution = model.default_solver.solve(model, t_eval)
 
-param["Current function"] = pybamm.GetConstantCurrent(current=0)
-model.concatenated_initial_conditions = solution.y[:,-1][:,np.newaxis]
-#param.update_model(model, disc)
-param.process_model(model)
-disc = pybamm.Discretisation(mesh, model.default_spatial_methods)
-disc.process_model(model)
-t_eval2 = np.linspace(solution.t[-1],solution.t[-1] + 0.1,1000)
+param["Current function"] = pybamm.GetConstantCurrent(current=pybamm.Scalar(0))
+param.update_model(model, disc)
+model.concatenated_initial_conditions = solution.y[:, -1][:, np.newaxis]
+
+t_eval2 = np.linspace(solution.t[-1], solution.t[-1] + 2, 1000)
 solution2 = model.default_solver.solve(model,t_eval2)
 
 # quick plot
@@ -108,11 +119,32 @@ c_s_p_surf = pybamm.ProcessedVariable(
 c_s_n_nd = pybamm.ProcessedVariable(
     model.variables['Negative particle surface concentration'], solution.t, solution.y, mesh=mesh
 )
+c_s_n_nd2 = pybamm.ProcessedVariable(
+    model.variables['Negative particle surface concentration'], solution2.t, solution2.y, mesh=mesh
+)
 c_s_p_nd = pybamm.ProcessedVariable(
     model.variables['Positive particle surface concentration'], solution.t, solution.y, mesh=mesh
 )
+c_s_p_nd2 = pybamm.ProcessedVariable(
+    model.variables['Positive particle surface concentration'], solution2.t, solution2.y, mesh=mesh
+)
+
+print(solution2.t[0])
+print(solution2.t[-1])
 
 plt.figure(2)
 plt.plot(solution.t,voltage(solution.t))
 plt.plot(solution2.t,voltage2(solution2.t))
+
+plt.figure(3)
+plt.plot(solution.t,c_s_n_nd(solution.t,x=0))
+plt.plot(solution2.t,c_s_n_nd2(solution2.t,x=0))
 plt.show()
+
+
+# plt.figure(2)
+# plt.plot(c_s_n_nd(t=solution.t,x=0),OCV_anode(c_s_n_nd(t=solution.t,x=0)))
+
+# plt.figure(3)
+# plt.plot(c_s_p_nd(t=solution.t,x=1),OCV_cathode(c_s_p_nd(t=solution.t,x=1)))
+# plt.show()
