@@ -70,7 +70,7 @@ param.update({
     "Current function": pybamm.GetConstantCurrent()
 })
 param["Initial concentration in negative electrode [mol.m-3]"] = 1.2*19155
-param["Initial concentration in positive electrode [mol.m-3]"] = 0.45*1120
+param["Initial concentration in positive electrode [mol.m-3]"] = 0.75*1120
 param["Maximum concentration in negative electrode [mol.m-3]"] = 24000   #29334
 param["Maximum concentration in positive electrode [mol.m-3]"] = 1.3*30800
 param["Negative electrode reference exchange-current density [A.m-2(m3.mol)1.5]"] = 1.4E-6
@@ -128,23 +128,29 @@ c_s_p_nd = pybamm.ProcessedVariable(
 c_s_p_nd2 = pybamm.ProcessedVariable(
     model.variables['Positive particle surface concentration'], solution2.t, solution2.y, mesh=mesh
 )
+time = pybamm.ProcessedVariable(
+    model.variables['Time [h]'], solution.t, solution.y, mesh=mesh
+)
+time2 = pybamm.ProcessedVariable(
+    model.variables['Time [h]'], solution.t, solution.y, mesh=mesh
+)
 
-print(solution2.t[0])
-print(solution2.t[-1])
+data_experiments = pd.read_csv(
+        pybamm.root_dir() + "/results/LGM50/data/data1C.csv"
+).to_numpy()
 
 plt.figure(2)
-plt.plot(solution.t,voltage(solution.t))
-plt.plot(solution2.t,voltage2(solution2.t))
+plt.fill_between(
+    data_experiments[:,0]/3600,
+    data_experiments[:,1] + data_experiments[:,2],
+    data_experiments[:,1] - data_experiments[:,2],
+    color="#808080"
+)
+plt.plot(time(solution.t),voltage(solution.t),color="C1")
+plt.plot(time2(solution2.t),voltage2(solution2.t),color="C1")
 
 plt.figure(3)
 plt.plot(solution.t,c_s_n_nd(solution.t,x=0))
 plt.plot(solution2.t,c_s_n_nd2(solution2.t,x=0))
+
 plt.show()
-
-
-# plt.figure(2)
-# plt.plot(c_s_n_nd(t=solution.t,x=0),OCV_anode(c_s_n_nd(t=solution.t,x=0)))
-
-# plt.figure(3)
-# plt.plot(c_s_p_nd(t=solution.t,x=1),OCV_cathode(c_s_p_nd(t=solution.t,x=1)))
-# plt.show()
