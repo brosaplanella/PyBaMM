@@ -2,9 +2,12 @@ import pybamm
 import numpy as np
 from scipy import interpolate
 import pandas as pd
+import matplotlib.pyplot as plt
+
+pybamm.set_logging_level("INFO")
 
 # load model
-model = pybamm.lithium_ion.DFN()
+model = pybamm.lithium_ion.SPMe()
 
 # create geometry
 geometry = model.default_geometry
@@ -56,6 +59,11 @@ param.update({
     "Typical current [A]": 5,
     "Current function": pybamm.GetConstantCurrent()
 })
+param["Initial concentration in negative electrode [mol.m-3]"] = 10000   #19155
+param["Initial concentration in positive electrode [mol.m-3]"] = 1120
+param["Maximum concentration in negative electrode [mol.m-3]"] = 29334
+param["Maximum concentration in positive electrode [mol.m-3]"] = 30800
+
 param.process_model(model)
 param.process_geometry(geometry)
 
@@ -67,9 +75,44 @@ disc = pybamm.Discretisation(mesh, model.default_spatial_methods)
 disc.process_model(model)
 
 # solve model
-t_eval = np.linspace(0, 0.2, 100)
+model.use_jacobian = False
+t_eval = np.linspace(0, 0.1, 1000)
 solution = model.default_solver.solve(model, t_eval)
 
-# plot
+param["Current function"] = pybamm.GetConstantCurrent(current=0)
+model.concatenated_initial_conditions = solution.y[:,-1][:,np.newaxis]
+#param.update_model(model, disc)
+param.process_model(model)
+disc = pybamm.Discretisation(mesh, model.default_spatial_methods)
+disc.process_model(model)
+t_eval2 = np.linspace(solution.t[-1],solution.t[-1] + 0.1,1000)
+solution2 = model.default_solver.solve(model,t_eval2)
+
+# quick plot
 plot = pybamm.QuickPlot(model, mesh, solution)
 plot.dynamic_plot()
+
+# other plots
+voltage = pybamm.ProcessedVariable(
+    model.variables['Terminal voltage [V]'], solution.t, solution.y, mesh=mesh
+)
+voltage2 = pybamm.ProcessedVariable(
+    model.variables['Terminal voltage [V]'], solution2.t, solution2.y, mesh=mesh
+)
+c_s_n_surf = pybamm.ProcessedVariable(
+    model.variables['Negative particle surface concentration [mol.m-3]'], solution.t, solution.y, mesh=mesh
+)
+c_s_p_surf = pybamm.ProcessedVariable(
+    model.variables['Positive particle surface concentration [mol.m-3]'], solution.t, solution.y, mesh=mesh
+)
+c_s_n_nd = pybamm.ProcessedVariable(
+    model.variables['Negative particle surface concentration'], solution.t, solution.y, mesh=mesh
+)
+c_s_p_nd = pybamm.ProcessedVariable(
+    model.variables['Positive particle surface concentration'], solution.t, solution.y, mesh=mesh
+)
+
+plt.figure(2)
+plt.plot(solution.t,voltage(solution.t))
+plt.plot(solution2.t,voltage2(solution2.t))
+plt.show()
