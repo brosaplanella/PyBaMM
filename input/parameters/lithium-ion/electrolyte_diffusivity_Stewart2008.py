@@ -31,6 +31,8 @@ def electrolyte_diffusivity_Stewart2008(c_e, T, T_inf, E_D_e, R_g):
         Electrolyte diffusivity
     """
 
-    D_c_e = 2.582E-9 * np.exp(-2.85E-3 * c_e)
+    D_c_e = 1.3*2.582E-9 * np.exp(-2.85E-3 * c_e)
+    arrhenius = np.exp(E_D_e / R_g * (1 / T_inf - 1 / T))
 
-    return D_c_e
+    return D_c_e * arrhenius
+
