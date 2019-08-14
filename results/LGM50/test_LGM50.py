@@ -77,32 +77,43 @@ def OCV_anode(sto):
         out = np.array([out])[0]
     return out
 
-param = pybamm.ParameterValues("input/parameters/lithium-ion/LGM50_parameters.csv")
-param.update({
-    "Electrolyte conductivity": "electrolyte_conductivity_Petibon2016.py",
-    "Electrolyte diffusivity": "electrolyte_diffusivity_Stewart2008.py",
-    "Negative electrode OCV": OCV_anode,
-    "Positive electrode OCV": OCV_cathode,
-    "Negative electrode diffusivity": "graphite_LGM50_diffusivity_CC3.py",
-    "Positive electrode diffusivity": "nmc_LGM50_diffusivity_CC3.py",
-    "Negative electrode OCV entropic change": "graphite_entropic_change_Moura.py",
-    "Positive electrode OCV entropic change": "lico2_entropic_change_Moura.py",
-    "Negative electrode reaction rate": "graphite_LGM50_electrolyte_reaction_rate.py",
-    "Positive electrode reaction rate": "nmc_LGM50_electrolyte_reaction_rate.py",
-    "Typical current [A]": 5,
-    "Current function": pybamm.GetConstantCurrent()
-})
+param = model.default_parameter_values
 
-cspmax = 35000
+# param = pybamm.ParameterValues("input/parameters/lithium-ion/LGM50_parameters.csv")
+# param.update({
+#     "Electrolyte conductivity": "electrolyte_conductivity_Petibon2016.py",
+#     "Electrolyte diffusivity": "electrolyte_diffusivity_Stewart2008.py",
+#     # "Electrolyte conductivity": "electrolyte_conductivity_Capiglia1999.py",
+#     # "Electrolyte diffusivity": "electrolyte_diffusivity_Capiglia1999.py",
+#     # "Negative electrode OCV": OCV_anode,
+#     # "Positive electrode OCV": OCV_cathode,
+#     "Negative electrode OCV": "graphite_mcmb2528_ocp_Dualfoil.py",
+#     "Positive electrode OCV": "lico2_ocp_Dualfoil.py",
+#     "Negative electrode diffusivity": "graphite_LGM50_diffusivity_CC3.py",
+#     "Positive electrode diffusivity": "nmc_LGM50_diffusivity_CC3.py",
+#     # "Negative electrode diffusivity": "graphite_mcmb2528_diffusivity_Dualfoil.py",
+#     # "Positive electrode diffusivity": "lico2_diffusivity_Dualfoil.py",
+#     "Negative electrode OCV entropic change": "graphite_entropic_change_Moura.py",
+#     "Positive electrode OCV entropic change": "lico2_entropic_change_Moura.py",
+#     # "Negative electrode reaction rate": "graphite_LGM50_electrolyte_reaction_rate.py",
+#     # "Positive electrode reaction rate": "nmc_LGM50_electrolyte_reaction_rate.py",
+#     "Negative electrode reaction rate": "graphite_electrolyte_reaction_rate.py",
+#     "Positive electrode reaction rate": "lico2_electrolyte_reaction_rate.py",
+#     "Typical current [A]": 5,
+#     "Current function": pybamm.GetConstantCurrent()
+# })
+
+cspmax = 45000
 csnmax = 30000
 
-param["Initial concentration in negative electrode [mol.m-3]"] = 0.9*csnmax
+param["Initial concentration in negative electrode [mol.m-3]"] = 0.98*csnmax
 param["Initial concentration in positive electrode [mol.m-3]"] = 0.05*cspmax
 param["Maximum concentration in negative electrode [mol.m-3]"] = csnmax
 param["Maximum concentration in positive electrode [mol.m-3]"] = cspmax
-param["Negative electrode reference exchange-current density [A.m-2(m3.mol)1.5]"] = 1.4E-6
-param["Positive electrode reference exchange-current density [A.m-2(m3.mol)1.5]"] = 1.4E-6
+# param["Negative electrode reference exchange-current density [A.m-2(m3.mol)1.5]"] = 1.4E-6
+# param["Positive electrode reference exchange-current density [A.m-2(m3.mol)1.5]"] = 1.4E-6
 param["Lower voltage cut-off [V]"] = 2.5
+param["Upper voltage cut-off [V]"] = 4.8
 
 param.process_model(model)
 param.process_geometry(geometry)
