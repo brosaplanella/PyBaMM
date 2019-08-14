@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 pybamm.set_logging_level("INFO")
 
 # load model
+# model = pybamm.lithium_ion.DFN()   # has bumps?
 model = pybamm.lithium_ion.SPMe()   # has bumps
 # model = pybamm.lithium_ion.SPM()   # has bumps
 
@@ -55,13 +56,13 @@ geometry = model.default_geometry
 # load parameter values and process model and geometry
 param = model.default_parameter_values
 
-# cspmax = 45000
-# csnmax = 30000
+cspmax = 45000
+csnmax = 30000
 
-# param["Initial concentration in negative electrode [mol.m-3]"] = 0.98*csnmax
-# param["Initial concentration in positive electrode [mol.m-3]"] = 0.05*cspmax
-# param["Maximum concentration in negative electrode [mol.m-3]"] = csnmax
-# param["Maximum concentration in positive electrode [mol.m-3]"] = cspmax
+param["Initial concentration in negative electrode [mol.m-3]"] = 0.98*csnmax
+param["Initial concentration in positive electrode [mol.m-3]"] = 0.05*cspmax
+param["Maximum concentration in negative electrode [mol.m-3]"] = csnmax
+param["Maximum concentration in positive electrode [mol.m-3]"] = cspmax
 
 param.process_model(model)
 param.process_geometry(geometry)
@@ -165,7 +166,7 @@ N4 = pybamm.ProcessedVariable(
 )
 
 plt.figure(1)
-plt.plot(time(solution.t),x_averaged_OCV_p(solution.t),label="SPMe OCV")
+plt.plot(time(solution.t),x_averaged_OCV_p(solution.t),label="model OCV")
 # plt.plot(time(solution.t),P1(solution.t,x=0),label="P1")  # P1 produces NaNs
 plt.plot(time(solution.t),P2(solution.t),label="P2")
 plt.plot(time(solution.t),P3(solution.t),label="P3")
@@ -186,7 +187,6 @@ plt.legend()
 
 plt.figure(3)
 plt.plot(time(solution.t),x_averaged_OCV_p(solution.t)-x_averaged_OCV_n(solution.t),label="SPMe OCV")
-# plt.plot(time(solution.t),N1(solution.t,x=0),label="P1")  # N1 produces NaNs
 plt.plot(time(solution.t),P2(solution.t)-N2(solution.t),label="N2")
 plt.plot(time(solution.t),P3(solution.t)-N3(solution.t),label="N3")
 plt.plot(time(solution.t),P4(solution.t)-N4(solution.t),label="N4")
