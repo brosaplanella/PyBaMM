@@ -1,16 +1,13 @@
 import autograd.numpy as np
 
 
-def electrolyte_diffusivity_Stewart2008(c_e, T, T_inf, E_D_e, R_g):
+def electrolyte_diffusivity_Nyman2008(c_e, T, T_inf, E_D_e, R_g):
     """
-    Diffusivity of LiPF6 in EC:DEC as a function of ion concentration. The original
-    data and fit are from [1].
+    Diffusivity of LiPF6 in EC:EMC (3:7) as a function of ion concentration. The data comes from [1]
 
     References
     ----------
-    .. [1] S G Stewart and J Newman. The Use of UV/vis Absorption to Measure Diffusion
-    Coefficients in LiPF6 Electrolytic Solutions. Journal of The Electrochemical
-    Society 155 (2008): F13-F16.
+    .. [1] A Nyman et al. Electrochemical characterisation and modelling of the mass transport phenomena in LiPF6-EC-EMC electrolyte. Electrochimica Acta 53 (2008): 6356-6365.
 
     Parameters
     ----------
@@ -28,11 +25,14 @@ def electrolyte_diffusivity_Stewart2008(c_e, T, T_inf, E_D_e, R_g):
     Returns
     -------
     :`numpy.Array`
-        Electrolyte diffusivity
+        Solid diffusivity
     """
 
-    D_c_e = 1.3*2.582E-9 * np.exp(-2.85E-3 * c_e)
+    D_c_e = (
+        8.794E-11 * (c_e / 1000) ** 2
+        - 3.972E-10 * (c_e / 1000)
+        + 4.862E-10
+    )
     arrhenius = np.exp(E_D_e / R_g * (1 / T_inf - 1 / T))
 
     return D_c_e * arrhenius
-

@@ -16,12 +16,12 @@ geometry = model.default_geometry
 data_cathode = pd.read_csv(
     pybamm.root_dir() + "/input/parameters/lithium-ion/nmc_LGM50_ocp_CC3.csv"
 )
-interpolated_OCV_cathode = interpolate.interp1d(
-    data_cathode.to_numpy()[:,0], 
-    data_cathode.to_numpy()[:,1], 
-    bounds_error=False, 
-    fill_value="extrapolate"
-)
+# interpolated_OCV_cathode = interpolate.interp1d(
+#     data_cathode.to_numpy()[:,0], 
+#     data_cathode.to_numpy()[:,1], 
+#     bounds_error=False, 
+#     fill_value="extrapolate"
+# )
 # interpolated_OCV_cathode = interpolate.PchipInterpolator(
 #     data_cathode.to_numpy()[:,0], 
 #     data_cathode.to_numpy()[:,1], 
@@ -30,37 +30,46 @@ interpolated_OCV_cathode = interpolate.interp1d(
 data_anode = pd.read_csv(
     pybamm.root_dir() + "/input/parameters/lithium-ion/graphite_LGM50_ocp_CC3.csv"
 )
-interpolated_OCV_anode = interpolate.interp1d(
-    data_anode.to_numpy()[:,0], 
-    data_anode.to_numpy()[:,1], 
-    bounds_error=False, 
-    fill_value="extrapolate"
-)
+# interpolated_OCV_anode = interpolate.interp1d(
+#     data_anode.to_numpy()[:,0], 
+#     data_anode.to_numpy()[:,1], 
+#     bounds_error=False, 
+#     fill_value="extrapolate"
+# )
 # interpolated_OCV_anode = interpolate.PchipInterpolator(
 #     data_anode.to_numpy()[:,0], 
 #     data_anode.to_numpy()[:,1], 
 #     extrapolate=True
 # )
 
+# def OCV_cathode(sto):
+#     out = interpolated_OCV_cathode(sto)
+#     if np.size(out) == 1:
+#         out = np.array([out])[0]
+#     return out
+
+# def OCV_anode(sto):
+#     out = interpolated_OCV_anode(sto)
+#     if np.size(out) == 1:
+#         out = np.array([out])[0]
+#     return out
+
 def OCV_cathode(sto):
-    out = interpolated_OCV_cathode(sto)
-    if np.size(out) == 1:
-        out = np.array([out])[0]
+    out = np.interp(sto,data_cathode.to_numpy()[:,0],data_cathode.to_numpy()[:,1])
+    # if np.size(out) == 1:
+    #     out = np.array([out])
     return out
 
 def OCV_anode(sto):
-    out = interpolated_OCV_anode(sto)
-    if np.size(out) == 1:
-        out = np.array([out])[0]
+    out = np.interp(sto,data_anode.to_numpy()[:,0],data_anode.to_numpy()[:,1])
+    # if np.size(out) == 1:
+    #     out = np.array([out])
     return out
-
-
-# param = model.default_parameter_values
 
 param = pybamm.ParameterValues("input/parameters/lithium-ion/LGM50_parameters.csv")
 param.update({
-    "Electrolyte conductivity": "electrolyte_conductivity_Petibon2016.py",
-    "Electrolyte diffusivity": "electrolyte_diffusivity_Stewart2008.py",
+    "Electrolyte conductivity": "electrolyte_conductivity_Nyman2008.py",
+    "Electrolyte diffusivity": "electrolyte_diffusivity_Nyman2008.py",
     # "Electrolyte conductivity": "electrolyte_conductivity_Capiglia1999.py",
     # "Electrolyte diffusivity": "electrolyte_diffusivity_Capiglia1999.py",
     "Negative electrode OCV": OCV_anode,
@@ -82,8 +91,6 @@ param["Initial concentration in negative electrode [mol.m-3]"] = 0.98*csnmax
 param["Initial concentration in positive electrode [mol.m-3]"] = 0.05*cspmax
 param["Maximum concentration in negative electrode [mol.m-3]"] = csnmax
 param["Maximum concentration in positive electrode [mol.m-3]"] = cspmax
-param["Negative electrode reference exchange-current density [A.m-2(m3.mol)1.5]"] = 1.4E-6
-param["Positive electrode reference exchange-current density [A.m-2(m3.mol)1.5]"] = 1.4E-6
 param["Lower voltage cut-off [V]"] = 2.5
 param["Upper voltage cut-off [V]"] = 4.4
 
@@ -98,7 +105,7 @@ disc = pybamm.Discretisation(mesh, model.default_spatial_methods)
 disc.process_model(model)
 
 # solve model discharge
-#model.use_jacobian = False
+# model.use_jacobian = False
 t_eval = np.linspace(0, 0.5, 2E3)
 solution = model.default_solver.solve(model, t_eval)
 
@@ -131,8 +138,8 @@ t_eval2 = np.linspace(solution.t[-1], solution.t[-1] + 0.65, 1000)
 solution2 = model.default_solver.solve(model,t_eval2)
 
 # quick plot
-# plot = pybamm.QuickPlot(model, mesh, solution)
-# plot.dynamic_plot()
+plot = pybamm.QuickPlot(model, mesh, solution)
+plot.dynamic_plot()
 
 # plot = pybamm.QuickPlot(model, mesh, solution2)
 # plot.dynamic_plot()
@@ -217,20 +224,20 @@ plt.xlabel("t [h]")
 plt.ylabel("Voltage [V]")
 
 plt.figure(5)
-plt.plot(np.linspace(0,1,1E4),OCV_cathode(np.linspace(0,1,1E4)),color="C0")
-plt.plot(np.linspace(0,1,1E4),OCV_anode(np.linspace(0,1,1E4)),color="C1")
+plt.plot(np.linspace(0,1,1E3),OCV_cathode(np.linspace(0,1,1E3)),color="C0")
+plt.plot(np.linspace(0,1,1E3),OCV_anode(np.linspace(0,1,1E3)),color="C1")
 plt.xlabel("SoC")
 plt.ylabel("OCP [V]")
 plt.legend(("positive","negative"))
 
-plt.figure(6)
-plt.plot(solution.t,Ueq(solution.t),label="OCV")
-plt.plot(solution.t,etar(solution.t),label="reaction op")
-plt.plot(solution.t,etac(solution.t),label="concentration op")
-plt.plot(solution.t,Dphis(solution.t),label="solid Ohmic")
-plt.plot(solution.t,Dphie(solution.t),label="electrolyte Ohmic")
-plt.xlabel("t")
-plt.ylabel("Voltages [V]")
-plt.legend()
+# plt.figure(6)
+# plt.plot(solution.t,Ueq(solution.t),label="OCV")
+# plt.plot(solution.t,etar(solution.t),label="reaction op")
+# plt.plot(solution.t,etac(solution.t),label="concentration op")
+# plt.plot(solution.t,Dphis(solution.t),label="solid Ohmic")
+# plt.plot(solution.t,Dphie(solution.t),label="electrolyte Ohmic")
+# plt.xlabel("t")
+# plt.ylabel("Voltages [V]")
+# plt.legend()
 
 plt.show()
