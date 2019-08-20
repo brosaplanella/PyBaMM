@@ -3,11 +3,14 @@ import autograd.numpy as np
 
 def electrolyte_conductivity_Nyman2008(c_e, T, T_inf, E_k_e, R_g):
     """
-    Conductivity of LiPF6 in EC:EMC (3:7) as a function of ion concentration. The data comes from [1].
+    Conductivity of LiPF6 in EC:EMC (3:7) as a function of ion concentration. The data
+    comes from [1].
 
     References
     ----------
-    .. [1] A Nyman et al. Electrochemical characterisation and modelling of the mass transport phenomena in LiPF6-EC-EMC electrolyte. Electrochimica Acta 53 (2008): 6356-6365.
+    .. [1] A Nyman et al. Electrochemical characterisation and modelling of the mass
+    transport phenomena in LiPF6-EC-EMC electrolyte. Electrochimica Acta 53 (2008):
+    6356-6365.
 
     Parameters
     ----------

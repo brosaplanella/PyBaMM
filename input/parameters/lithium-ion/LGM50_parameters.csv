@@ -30,7 +30,7 @@ Upper voltage cut-off [V],,4.2,-,
 # Electrolyte properties,,,
 Typical electrolyte concentration [mol.m-3],,1000,Estimated by CC3,
 Cation transference number,,0.363,Nyman et al. 2008,
-Typical lithium ion diffusivity [m2.s-1],,3.7E-10,Stewart & Newman 2008,
+Typical lithium ion diffusivity [m2.s-1],,1.77E-10,Nyman et al. 2008,
 ,,,,
 # Electrode properties,,,
 Negative electrode conductivity [S.m-1],,100,Scott Moura FastDFN,graphite
@@ -41,8 +41,8 @@ Negative electrode diffusion coefficient [m2.s-1],,6E-14,Fit,
 Positive electrode diffusion coefficient [m2.s-1],,1E-15,Fit,
 ,,,,
 # Current collector properties ,,,
-Negative current collector conductivity [S.m-1],,59600000,LIONSIMBA,copper(?)
-Positive current collector conductivity [S.m-1],,35500000,LIONSIMBA,aluminium
+Negative current collector conductivity [S.m-1],,5.8411E7,CRC Handbook,copper
+Positive current collector conductivity [S.m-1],,3.6914E7,CRC Handbook,aluminium
 ,,,,
 # Microstructure,,,
 Negative electrode porosity,,0.3097,Estimated CC3,
@@ -52,7 +52,7 @@ Negative particle radius [m],,5.86E-6,Measured CC3,
 Positive particle radius [m],,5.22E-6,Measured CC3,
 Negative electrode surface area density [m-1],,353370,Calculated,
 Positive electrode surface area density [m-1],,381030,Calculated,
-Bruggeman coefficient,,1.5,Scott Moura FastDFN,
+Bruggeman coefficient,,1.5,Tjaden et al. 2016,
 ,,,,
 # Interfacial reactions,,,
 Negative electrode cation signed stoichiometry,,-1,,

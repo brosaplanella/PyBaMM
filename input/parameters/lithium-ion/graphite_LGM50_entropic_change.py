@@ -30,4 +30,4 @@ def graphite_LGM50_entropic_change(sto, c_n_max):
         + (0.0155 / (0.029 * c_n_max)) * ((np.cosh((sto - 0.105) / 0.029)) ** (-2))
     )
 
-    return du_dT*0
+    return du_dT * 0

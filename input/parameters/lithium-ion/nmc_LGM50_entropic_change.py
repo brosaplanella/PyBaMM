@@ -27,4 +27,4 @@ def nmc_LGM50_entropic_change(sto, c_p_max):
         - (0.02167 / 0.006 / c_p_max) * ((np.cosh((sto - 0.525) / 0.006)) ** (-2))
     )
 
-    return du_dT*0
+    return du_dT * 0

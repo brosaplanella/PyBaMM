@@ -12,7 +12,7 @@ geometry = model.default_geometry
 param = model.default_parameter_values
 
 param["Negative electrode OCV entropic change"] = "graphite_LGM50_entropic_change.py"
-param["Positive electrode OCV entropic change"] =  "nmc_LGM50_entropic_change.py"
+param["Positive electrode OCV entropic change"] = "nmc_LGM50_entropic_change.py"
 
 
 param.process_model(model)
@@ -35,30 +35,36 @@ plot.dynamic_plot()
 
 # other plots
 Ueq = pybamm.ProcessedVariable(
-    model.variables['X-averaged battery open circuit voltage [V]'], solution.t, solution.y, mesh=mesh
+    model.variables['X-averaged battery open circuit voltage [V]'], solution.t,
+    solution.y, mesh=mesh
 )
 Umeas = pybamm.ProcessedVariable(
-    model.variables['Measured battery open circuit voltage [V]'], solution.t, solution.y, mesh=mesh
+    model.variables['Measured battery open circuit voltage [V]'], solution.t,
+    solution.y, mesh=mesh
 )
 etar = pybamm.ProcessedVariable(
-    model.variables['X-averaged battery reaction overpotential [V]'], solution.t, solution.y, mesh=mesh
+    model.variables['X-averaged battery reaction overpotential [V]'], solution.t,
+    solution.y, mesh=mesh
 )
 etac = pybamm.ProcessedVariable(
-    model.variables['X-averaged battery concentration overpotential [V]'], solution.t, solution.y, mesh=mesh
+    model.variables['X-averaged battery concentration overpotential [V]'], solution.t,
+    solution.y, mesh=mesh
 )
 Dphis = pybamm.ProcessedVariable(
-    model.variables['X-averaged battery solid phase ohmic losses [V]'], solution.t, solution.y, mesh=mesh
+    model.variables['X-averaged battery solid phase ohmic losses [V]'], solution.t,
+    solution.y, mesh=mesh
 )
 Dphie = pybamm.ProcessedVariable(
-    model.variables['X-averaged battery electrolyte ohmic losses [V]'], solution.t, solution.y, mesh=mesh
+    model.variables['X-averaged battery electrolyte ohmic losses [V]'], solution.t,
+    solution.y, mesh=mesh
 )
 
 plt.figure(6)
-plt.plot(solution.t,Ueq(solution.t),label="OCV")
-plt.plot(solution.t,etar(solution.t),label="reaction op")
-plt.plot(solution.t,etac(solution.t),label="concentration op")
-plt.plot(solution.t,Dphis(solution.t),label="solid Ohmic")
-plt.plot(solution.t,Dphie(solution.t),label="electrolyte Ohmic")
+plt.plot(solution.t, Ueq(solution.t), label="OCV")
+plt.plot(solution.t, etar(solution.t), label="reaction op")
+plt.plot(solution.t, etac(solution.t), label="concentration op")
+plt.plot(solution.t, Dphis(solution.t), label="solid Ohmic")
+plt.plot(solution.t, Dphie(solution.t), label="electrolyte Ohmic")
 plt.xlabel("t")
 plt.ylabel("Voltages [V]")
 plt.legend()
