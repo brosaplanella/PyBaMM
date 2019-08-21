@@ -97,7 +97,7 @@ plt.savefig(
 
 
 # Figure 6
-
+# How do I generate these plots? What is x = 0 and what is x = 1?
 
 # Figure 7
 
@@ -168,7 +168,64 @@ plt.savefig(
 
 
 # Figure 10
+EIS_cathode = np.arange(0, 20)
+EIS_cathode_file = "/results/LGM50/data/EIS/Cathode02_discharge_03_PEIS_C09_{}_"
+m = int(np.ceil(np.sqrt(np.size(EIS_cathode))))
+n = int(np.ceil(np.size(EIS_cathode) / m))
 
+fig101, axes101 = plt.subplots(n, m, num=101, figsize=(12.8, 9.6))
+for j in range(0, n):
+    for i in range(0, m):
+        k = j * m + i + 1
+        if k > np.size(EIS_cathode):
+            break
+        EIS_raw = pd.read_csv(
+            pybamm.root_dir() + EIS_cathode_file.format(k) + "raw.csv",
+            sep="\t",
+            skiprows=6
+        ).to_numpy()
+        EIS_fit = pd.read_csv(
+            pybamm.root_dir() + EIS_cathode_file.format(k) + "fit.csv",
+            sep="\t",
+            skiprows=6
+        ).to_numpy()
+        axes101[j, i].plot(EIS_fit[:, 2], -EIS_fit[:, 3], color="red")
+        axes101[j, i].scatter(EIS_raw[:, 2], -EIS_raw[:, 3], c="black", s=1)
+        axes101[j, i].set_xlabel("Re(Z) ($\Omega$)")
+        axes101[j, i].set_ylabel("-Im(Z) ($\Omega$)")
+        axes101[j, i].set_title("Cathode {}%".format(k * 5))
+plt.tight_layout()
+
+
+EIS_anode = np.arange(0, 20)
+EIS_anode_file = "/results/LGM50/data/EIS/Anode02_EIS_charge_02_PEIS_C16_{}_"
+m = int(np.ceil(np.sqrt(np.size(EIS_anode))))
+n = int(np.ceil(np.size(EIS_anode) / m))
+
+fig102, axes102 = plt.subplots(n, m, num=102, figsize=(12.8, 9.6))
+for j in range(0, n):
+    for i in range(0, m):
+        k = j * m + i + 1
+        if k > np.size(EIS_anode):
+            break
+        EIS_raw = pd.read_csv(
+            pybamm.root_dir() + EIS_anode_file.format(k) + "raw.csv",
+            sep="\t",
+            skiprows=6
+        ).to_numpy()
+        EIS_fit = pd.read_csv(
+            pybamm.root_dir() + EIS_anode_file.format(k) + "fit.csv",
+            sep="\t",
+            skiprows=6
+        ).to_numpy()
+        axes102[j, i].plot(EIS_fit[:, 2], -EIS_fit[:, 3], color="red")
+        axes102[j, i].scatter(EIS_raw[:, 2], -EIS_raw[:, 3], c="black", s=1)
+        axes102[j, i].set_xlabel("Re(Z) ($\Omega$)")
+        axes102[j, i].set_ylabel("-Im(Z) ($\Omega$)")
+        axes102[j, i].set_title("Anode {}%".format(105 - k * 5))
+plt.tight_layout()
+
+plt.show()
 
 # Figure 11
 
