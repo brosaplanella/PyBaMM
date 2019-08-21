@@ -188,20 +188,20 @@ A_swagelok = np.pi / 4 * 1.2 ** 2     # in cm^2
 
 plt.figure(14)
 plt.plot(
-    swagelok_GITT.to_numpy()[:,0] / A_swagelok,
-    swagelok_GITT.to_numpy()[:,3],
+    swagelok_GITT.to_numpy()[:, 0] / A_swagelok,
+    swagelok_GITT.to_numpy()[:, 3],
     color="black",
     label="full"
 )
 plt.plot(
-    swagelok_GITT.to_numpy()[:,0] / A_swagelok,
-    swagelok_GITT.to_numpy()[:,4],
+    swagelok_GITT.to_numpy()[:, 0] / A_swagelok,
+    swagelok_GITT.to_numpy()[:, 4],
     color="blue",
     label="cathode"
 )
 plt.plot(
-    swagelok_GITT.to_numpy()[:,0] / A_swagelok,
-    swagelok_GITT.to_numpy()[:,5],
+    swagelok_GITT.to_numpy()[:, 0] / A_swagelok,
+    swagelok_GITT.to_numpy()[:, 5],
     color="red",
     label="anode"
 )
