@@ -109,8 +109,8 @@ disc.process_model(model)
 # solve model discharge
 # model.use_jacobian = False
 t_eval = np.linspace(0, 1.5 * 3600 / tau.evaluate(), 2E3)
-# solver = pybamm.ScikitsOdeSolver()
-solver = pybamm.ScikitsDaeSolver()
+solver = pybamm.ScikitsOdeSolver()
+# solver = pybamm.ScikitsDaeSolver()
 solution = solver.solve(model, t_eval)
 
 # process variables discharge (the ones that use current)
