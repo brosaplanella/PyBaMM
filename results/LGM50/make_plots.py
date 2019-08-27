@@ -39,6 +39,11 @@ plt.xlabel("Particle radius ($\mu$m)")
 plt.ylabel("Number of observations")
 plt.title("Cathode: NMC")
 
+plt.savefig(
+    pybamm.root_dir() + "/results/LGM50/figures/fig3a.png",
+    dpi=300
+)
+
 plt.figure(32)
 plt.hist(data_graphite, bins=np.arange(0, 13))
 plt.xlim(0, 12)
@@ -46,12 +51,22 @@ plt.xlabel("Particle radius ($\mu$m)")
 plt.ylabel("Number of observations")
 plt.title("Anode: graphite")
 
+plt.savefig(
+    pybamm.root_dir() + "/results/LGM50/figures/fig3b.png",
+    dpi=300
+)
+
 plt.figure(33)
 plt.hist(data_silicon, bins=np.arange(0, 4.5, 0.5))
 plt.xlim(0, 4)
 plt.xlabel("Particle radius ($\mu$m)")
 plt.ylabel("Number of observations")
 plt.title("Anode: silicon")
+
+plt.savefig(
+    pybamm.root_dir() + "/results/LGM50/figures/fig3c.png",
+    dpi=300
+)
 
 
 # Figure 5
@@ -100,6 +115,66 @@ plt.savefig(
 # How do I generate these plots? What is x = 0 and what is x = 1?
 
 # Figure 7
+cathode_dQdE_lithiation = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/cathode_dQdE_lithiation.csv"
+)
+cathode_dQdE_delithiation = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/cathode_dQdE_delithiation.csv"
+)
+anode_dQdE_lithiation = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/anode_dQdE_lithiation.csv"
+)
+anode_dQdE_delithiation = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/anode_dQdE_delithiation.csv"
+)
+
+plt.figure(61)
+plt.plot(
+    cathode_dQdE_delithiation.to_numpy()[:, 0],
+    cathode_dQdE_delithiation.to_numpy()[:, 1],
+    color="blue",
+    label="delithiation"
+)
+plt.plot(
+    cathode_dQdE_lithiation.to_numpy()[:, 0],
+    cathode_dQdE_lithiation.to_numpy()[:, 1],
+    color="red",
+    label="lithiation"
+)
+plt.xlim(3.5, 4.2)
+plt.xlabel("Potential (V)")
+plt.ylabel("dQ/dE (mAh/V)")
+plt.title("Cathode")
+plt.legend()
+
+plt.savefig(
+    pybamm.root_dir() + "/results/LGM50/figures/fig6a.png",
+    dpi=300
+)
+
+plt.figure(62)
+plt.plot(
+    anode_dQdE_delithiation.to_numpy()[:, 0],
+    anode_dQdE_delithiation.to_numpy()[:, 1],
+    color="blue",
+    label="delithiation"
+)
+plt.plot(
+    anode_dQdE_lithiation.to_numpy()[:, 0],
+    anode_dQdE_lithiation.to_numpy()[:, 1],
+    color="red",
+    label="lithiation"
+)
+plt.xlim(0.0, 0.6)
+plt.xlabel("Potential (V)")
+plt.ylabel("dQ/dE (mAh/V)")
+plt.title("Anode")
+plt.legend()
+
+plt.savefig(
+    pybamm.root_dir() + "/results/LGM50/figures/fig6b.png",
+    dpi=300
+)
 
 
 # Figure 8
@@ -114,6 +189,40 @@ anode_GITT_lithiation = pd.read_csv(
 )
 anode_GITT_delithiation = pd.read_csv(
     pybamm.root_dir() + "/results/LGM50/data/anode_GITT_delithiation.csv"
+)
+cathode_diffusivity_lithiation = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/cathode_diffusivity_lithiation.csv"
+)
+cathode_diffusivity_delithiation = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/cathode_diffusivity_delithiation.csv"
+)
+anode_diffusivity_lithiation = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/anode_diffusivity_lithiation.csv"
+)
+anode_diffusivity_delithiation = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/anode_diffusivity_delithiation.csv"
+)
+
+plt.figure(81)
+plt.semilogy(
+    cathode_diffusivity_delithiation.to_numpy()[:, 0],
+    10 ** cathode_diffusivity_delithiation.to_numpy()[:, 1] * 1E-4,
+    color="blue", linestyle="None", marker="o", markersize=2, label="delithiation"
+)
+plt.semilogy(
+    cathode_diffusivity_lithiation.to_numpy()[:, 0],
+    10 ** cathode_diffusivity_lithiation.to_numpy()[:, 1] * 1E-4,
+    color="red", linestyle="None", marker="o", markersize=2, label="lithiation"
+)
+plt.xlim(0,1)
+plt.xlabel("State of Charge")
+plt.ylabel("Diffusivity ($\mathrm{m}^2 \mathrm{s}^{-1}$)")
+plt.title("Cathode")
+plt.legend(loc="upper left")
+
+plt.savefig(
+    pybamm.root_dir() + "/results/LGM50/figures/fig8a.png",
+    dpi=300
 )
 
 plt.figure(82)
@@ -134,10 +243,32 @@ plt.plot(
 plt.xlabel("Capacity (mA h $\mathrm{cm}^{-2}$)")
 plt.ylabel("Potential (V)")
 plt.title("Cathode")
-plt.legend()
+plt.legend(loc="upper left")
 
 plt.savefig(
-    pybamm.root_dir() + "/results/LGM50/figures/fig8a.png",
+    pybamm.root_dir() + "/results/LGM50/figures/fig8b.png",
+    dpi=300
+)
+
+plt.figure(83)
+plt.semilogy(
+    anode_diffusivity_delithiation.to_numpy()[:, 0],
+    10 ** anode_diffusivity_delithiation.to_numpy()[:, 1] * 1E-4,
+    color="blue", linestyle="None", marker="o", markersize=2, label="delithiation"
+)
+plt.semilogy(
+    anode_diffusivity_lithiation.to_numpy()[:, 0],
+    10 ** anode_diffusivity_lithiation.to_numpy()[:, 1] * 1E-4,
+    color="red", linestyle="None", marker="o", markersize=2, label="lithiation"
+)
+plt.xlim(0,1)
+plt.xlabel("State of Charge")
+plt.ylabel("Diffusivity ($\mathrm{m}^2 \mathrm{s}^{-1}$)")
+plt.title("Cathode")
+plt.legend(loc="upper left")
+
+plt.savefig(
+    pybamm.root_dir() + "/results/LGM50/figures/fig8c.png",
     dpi=300
 )
 
@@ -159,10 +290,10 @@ plt.plot(
 plt.xlabel("Capacity (mA h $\mathrm{cm}^{-2}$)")
 plt.ylabel("Potential (V)")
 plt.title("Anode")
-plt.legend()
+plt.legend(loc="upper right")
 
 plt.savefig(
-    pybamm.root_dir() + "/results/LGM50/figures/fig8b.png",
+    pybamm.root_dir() + "/results/LGM50/figures/fig8d.png",
     dpi=300
 )
 
@@ -196,6 +327,11 @@ for j in range(0, n):
         axes101[j, i].set_title("Cathode {}%".format(k * 5))
 plt.tight_layout()
 
+plt.savefig(
+    pybamm.root_dir() + "/results/LGM50/figures/fig10a.png",
+    dpi=300
+)
+
 
 EIS_anode = np.arange(0, 20)
 EIS_anode_file = "/results/LGM50/data/EIS/Anode02_EIS_charge_02_PEIS_C16_{}_"
@@ -225,16 +361,192 @@ for j in range(0, n):
         axes102[j, i].set_title("Anode {}%".format(105 - k * 5))
 plt.tight_layout()
 
-plt.show()
+plt.savefig(
+    pybamm.root_dir() + "/results/LGM50/figures/fig10b.png",
+    dpi=300
+)
 
 # Figure 11
+cathode_exchange_current = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/cathode_exchange_current.csv"
+)
+anode_exchange_current = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/anode_exchange_current.csv"
+)
 
+plt.figure(111)
+plt.scatter(
+    cathode_exchange_current.to_numpy()[:, 0],
+    cathode_exchange_current.to_numpy()[:, 1] * 10,
+    c="black", s=5
+)
+plt.xlabel("State of Charge")
+plt.ylabel("Exchange current (A $\mathrm{m}^{-2}$)")
+plt.title("Cathode")
+
+plt.savefig(
+    pybamm.root_dir() + "/results/LGM50/figures/fig11a.png",
+    dpi=300
+)
+
+plt.figure(112)
+plt.scatter(
+    anode_exchange_current.to_numpy()[:, 0],
+    anode_exchange_current.to_numpy()[:, 1] * 10,
+    c="black", s=5
+)
+plt.xlabel("State of Charge")
+plt.ylabel("Exchange current (A $\mathrm{m}^{-2}$)")
+plt.title("Anode")
+
+plt.savefig(
+    pybamm.root_dir() + "/results/LGM50/figures/fig11b.png",
+    dpi=300
+)
 
 # Figure 12
+cathode_EIS_30degC = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/cathode_EIS_30degC.csv"
+)
+cathode_EIS_40degC = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/cathode_EIS_40degC.csv"
+)
+cathode_EIS_50degC = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/cathode_EIS_50degC.csv"
+)
+cathode_EIS_60degC = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/cathode_EIS_60degC.csv"
+)
+anode_EIS_30degC = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/anode_EIS_30degC.csv"
+)
+anode_EIS_40degC = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/anode_EIS_40degC.csv"
+)
+anode_EIS_50degC = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/anode_EIS_50degC.csv"
+)
+anode_EIS_60degC = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/anode_EIS_60degC.csv"
+)
 
+plt.figure(121)
+plt.scatter(
+    cathode_EIS_30degC.to_numpy()[:, 0],
+    cathode_EIS_30degC.to_numpy()[:, 1],
+    c="black", s=5, label="30°C"
+)
+plt.scatter(
+    cathode_EIS_40degC.to_numpy()[:, 0],
+    cathode_EIS_40degC.to_numpy()[:, 1],
+    c="red", s=5, label="40°C"
+)
+plt.scatter(
+    cathode_EIS_50degC.to_numpy()[:, 0],
+    cathode_EIS_50degC.to_numpy()[:, 1],
+    c="green", s=5, label="50°C"
+)
+plt.scatter(
+    cathode_EIS_60degC.to_numpy()[:, 0],
+    cathode_EIS_60degC.to_numpy()[:, 1],
+    c="blue", s=5, label="60°C"
+)
+plt.xlabel("Re(Z) ($\Omega$)")
+plt.ylabel("-Im(Z) ($\Omega$)")
+plt.title("Cathode")
+plt.legend()
+
+plt.savefig(
+    pybamm.root_dir() + "/results/LGM50/figures/fig12a.png",
+    dpi=300
+)
+
+plt.figure(122)
+plt.scatter(
+    anode_EIS_30degC.to_numpy()[:, 0],
+    anode_EIS_30degC.to_numpy()[:, 1],
+    c="black", s=5, label="30°C"
+)
+plt.scatter(
+    anode_EIS_40degC.to_numpy()[:, 0],
+    anode_EIS_40degC.to_numpy()[:, 1],
+    c="red", s=5, label="40°C"
+)
+plt.scatter(
+    anode_EIS_50degC.to_numpy()[:, 0],
+    anode_EIS_50degC.to_numpy()[:, 1],
+    c="green", s=5, label="50°C"
+)
+plt.scatter(
+    anode_EIS_60degC.to_numpy()[:, 0],
+    anode_EIS_60degC.to_numpy()[:, 1],
+    c="blue", s=5, label="60°C"
+)
+plt.xlabel("Re(Z) ($\Omega$)")
+plt.ylabel("-Im(Z) ($\Omega$)")
+plt.title("Anode")
+plt.legend()
+
+plt.savefig(
+    pybamm.root_dir() + "/results/LGM50/figures/fig12b.png",
+    dpi=300
+)
 
 # Figure 13
+exchange_current_activation_energy = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/exchange_current_activation_energy.csv"
+)
+fit_cathode = np.polyfit(
+    1000. / exchange_current_activation_energy.to_numpy()[:, 0],
+    np.log(exchange_current_activation_energy.to_numpy()[:, 1] * 10),
+    deg=1
+)
+fit_anode = np.polyfit(
+    1000. / exchange_current_activation_energy.to_numpy()[:, 0],
+    np.log(exchange_current_activation_energy.to_numpy()[:, 2] * 10),
+    deg=1
+)
 
+plt.figure(13)
+plt.plot(
+    1000. / exchange_current_activation_energy.to_numpy()[:, 0],
+    np.log(exchange_current_activation_energy.to_numpy()[:, 1] * 10),
+    color="black", marker='o', markersize=5, linestyle="None"
+)
+plt.plot(
+    1000. / exchange_current_activation_energy.to_numpy()[:, 0],
+    np.log(exchange_current_activation_energy.to_numpy()[:, 2] * 10),
+    color="black", marker='o', markersize=5, linestyle="None"
+)
+plt.plot(
+    1000. / exchange_current_activation_energy.to_numpy()[:, 0],
+    np.polyval(
+        fit_cathode,
+        1000. / exchange_current_activation_energy.to_numpy()[:, 0]
+    ),
+    color="blue",
+    label="cathode"
+)
+plt.plot(
+    1000. / exchange_current_activation_energy.to_numpy()[:, 0],
+    np.polyval(
+        fit_anode,
+        1000. / exchange_current_activation_energy.to_numpy()[:, 0]
+    ),
+    color="red",
+    label="anode"
+)
+plt.xlabel("1000/T ($\mathrm{m}^{-1})$")
+plt.ylabel("$\log(j_0)$")
+plt.legend()
+
+plt.savefig(
+    pybamm.root_dir() + "/results/LGM50/figures/fig13.png",
+    dpi=300
+)
+
+print("Cathode: ", fit_cathode[0] * 8.314 * 1000)
+print("Anode: ", fit_anode[0] * 8.314 * 1000)
 
 # Figure 14
 swagelok_GITT = pd.read_csv(
