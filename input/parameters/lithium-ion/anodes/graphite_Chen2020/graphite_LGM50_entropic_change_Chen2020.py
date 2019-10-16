@@ -4,10 +4,11 @@ import autograd.numpy as np
 def graphite_LGM50_entropic_change_Chen2020(sto, c_n_max):
     """
         Graphite entropic change in open circuit potential (OCP) at a temperature of
-        298.15K as a function of the stochiometry. Data is not yet available so it is set to zero.
+        298.15K as a function of the stochiometry. Data is not yet available so it is
+        set to zero.
         References
         ----------
-        .. [1] 
+        .. [1]
           Parameters
           ----------
           sto: double

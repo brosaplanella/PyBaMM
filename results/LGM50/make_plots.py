@@ -1,7 +1,7 @@
 #import os
 import pybamm
 import numpy as np
-from scipy import interpolate, optimize
+#from scipy import interpolate, optimize
 import pandas as pd
 import matplotlib.pyplot as plt
 #from matplotlib.ticker import ScalarFormatter, AutoMinorLocator
@@ -333,7 +333,7 @@ for j in range(0, n):
         axes102[j, i].set_xlabel("Re(Z) ($\Omega$)")
         axes102[j, i].set_ylabel("-Im(Z) ($\Omega$)")
         axes102[j, i].set_xlim(left=0)
-        axes102[j, i].set_ylim(bottom=0)        
+        axes102[j, i].set_ylim(bottom=0)
         axes102[j, i].set_title("Anode {}%".format(105 - EIS_anode[k] * 5))
 plt.tight_layout()
 
@@ -767,7 +767,7 @@ plt.savefig(
 #         shift_full[0] + full_cell_0pt02C_OCV_ch.to_numpy()[idx_ch:-1, 0] / A_coin_cathode
 #     )
 #     - interpolated_anode_lithiation(
-#         shift_full[1] + 
+#         shift_full[1] +
 #         full_cell_0pt02C_OCV_ch.to_numpy()[idx_ch:-1, 0] / A_coin_cathode
 #     ),
 #     color="black", label="theoretical full cell"
@@ -775,7 +775,7 @@ plt.savefig(
 # plt.plot(
 #     full_cell_0pt02C_OCV_dch.to_numpy()[0:idx_dch, 0] / A_coin_cathode,
 #     interpolated_cathode_lithiation(
-#         shift_full[0] + 
+#         shift_full[0] +
 #         full_cell_0pt02C_OCV_dch.to_numpy()[0:idx_dch, 0] / A_coin_cathode
 #     )
 #     - interpolated_anode_delithiation(
@@ -828,11 +828,11 @@ plt.savefig(
 # plt.plot(
 #     full_cell_0pt02C_OCV_dch.to_numpy()[0:idx_dch, 0] / A_coin_cathode,
 #     interpolated_cathode_lithiation(
-#         shift_full[0] + 
+#         shift_full[0] +
 #         full_cell_0pt02C_OCV_dch.to_numpy()[0:idx_dch, 0] / A_coin_cathode
 #     )
 #     - interpolated_anode_delithiation(
-#         shift_full[1] + 
+#         shift_full[1] +
 #         full_cell_0pt02C_OCV_dch.to_numpy()[0:idx_dch, 0] / A_coin_cathode
 #     ),
 #     color="black"

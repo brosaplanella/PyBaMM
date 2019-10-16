@@ -22,9 +22,8 @@ def graphite_LGM50_electrolyte_reaction_rate_Chen2020(T, T_inf, E_r, R_g):
     :`numpy.Array`
         Reaction rate
     """
-    
+
     m_ref = 1.4E-6
     arrhenius = np.exp(E_r / R_g * (1 / T_inf - 1 / T))
 
     return m_ref * arrhenius
-    

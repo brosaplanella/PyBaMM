@@ -281,7 +281,7 @@ plt.plot(
     time2(solution2.t), phi_p2(solution2.t, x=1) - phi_e2(solution2.t, x=1), color="C1"
 )
 plt.plot(
-    time(solution.t), phi_n(solution.t, x=0) - phi_e(solution.t, x=0), 
+    time(solution.t), phi_n(solution.t, x=0) - phi_e(solution.t, x=0),
     color="C0", label="negative"
 )
 plt.plot(
@@ -295,14 +295,14 @@ plt.figure(5)
 plt.plot(np.linspace(0, 1, 1E3), OCP_cathode(np.linspace(0, 1, 1E3)), color="C0")
 plt.plot(np.linspace(0, 1, 1E3), OCP_anode(np.linspace(0, 1, 1E3)), color="C1")
 plt.plot(
-    np.array([c_s_p_nd(solution.t[-1], x=1), c_s_n_nd(solution.t[-1], x=0)]), 
+    np.array([c_s_p_nd(solution.t[-1], x=1), c_s_n_nd(solution.t[-1], x=0)]),
     np.array([
         OCP_cathode(c_s_p_nd(solution.t[-1], x=1)),
         OCP_anode(c_s_n_nd(solution.t[-1], x=0))
     ]), 'ko'
 )
 plt.plot(
-    np.array([c_s_p_nd2(solution2.t[-1], x=1), c_s_n_nd2(solution2.t[-1], x=0)]), 
+    np.array([c_s_p_nd2(solution2.t[-1], x=1), c_s_n_nd2(solution2.t[-1], x=0)]),
     np.array([
         OCP_cathode(c_s_p_nd2(solution2.t[-1], x=1)),
         OCP_anode(c_s_n_nd2(solution2.t[-1], x=0))
