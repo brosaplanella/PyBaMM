@@ -40,19 +40,19 @@ for v in particle_distribution_NMC.to_numpy():
 axes3[0].hist(data_NMC, bins=np.arange(0, 15))
 axes3[0].set_xlim(0, 14)
 axes3[0].set_xlabel("Particle radius ($\mu$m)")
-axes3[0].set_ylabel("Frequency")
+axes3[0].set_ylabel("Count")
 axes3[0].set_title("Cathode: NMC")
 
 axes3[1].hist(data_graphite, bins=np.arange(0, 13))
 axes3[1].set_xlim(0, 12)
 axes3[1].set_xlabel("Particle radius ($\mu$m)")
-axes3[1].set_ylabel("Frequency")
+axes3[1].set_ylabel("Count")
 axes3[1].set_title("Anode: graphite")
 
 axes3[2].hist(data_silicon, bins=np.arange(0, 4.5, 0.5))
 axes3[2].set_xlim(0, 4)
 axes3[2].set_xlabel("Particle radius ($\mu$m)")
-axes3[2].set_ylabel("Frequency")
+axes3[2].set_ylabel("Count")
 axes3[2].set_title("Anode: silicon")
 
 plt.tight_layout()
@@ -505,7 +505,7 @@ plt.plot(
     label="anode"
 )
 plt.xlabel("1000/T ($\mathrm{m}^{-1})$")
-plt.ylabel("$\log(j_0)$")
+plt.ylabel("$\ln(j_0)$")
 plt.legend()
 
 plt.savefig(
