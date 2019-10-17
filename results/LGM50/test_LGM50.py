@@ -8,14 +8,16 @@ from autograd.extend import primitive, defvjp
 pybamm.set_logging_level("INFO")
 
 # load model
-model = pybamm.lithium_ion.SPMe()
+model = pybamm.lithium_ion.DFN()
 
 # create geometry
 geometry = model.default_geometry
 
 # define OCP functions
 data_cathode = pd.read_csv(
-    pybamm.root_dir() + "/input/parameters/lithium-ion/nmc_LGM50_ocp_CC3.csv"
+    pybamm.root_dir() +
+    "/input/parameters/lithium-ion/cathodes/nmc_Chen2020/nmc_LGM50_ocp_Chen2020.csv",
+    comment="#", skip_blank_lines=True
 )
 
 interpolated_OCP_cathode = interpolate.PchipInterpolator(
@@ -25,7 +27,9 @@ interpolated_OCP_cathode = interpolate.PchipInterpolator(
 )
 
 data_anode = pd.read_csv(
-    pybamm.root_dir() + "/input/parameters/lithium-ion/graphite_LGM50_ocp_CC3.csv"
+    pybamm.root_dir() +
+    "/input/parameters/lithium-ion/anodes/graphite_Chen2020/graphite_LGM50_ocp_Chen2020.csv",
+    comment="#", skip_blank_lines=True
 )
 
 interpolated_OCP_anode = interpolate.PchipInterpolator(
@@ -68,24 +72,24 @@ defvjp(OCP_cathode, OCP_cathode_vjp)
 defvjp(OCP_anode, OCP_anode_vjp)
 
 # load parameter values and process model and geometry
-param = pybamm.ParameterValues("input/parameters/lithium-ion/LGM50_parameters.csv")
+param = pybamm.ParameterValues(
+    chemistry={
+        "chemistry": "lithium-ion",
+        "cell": "LGM50_Chen2020",
+        "anode": "graphite_Chen2020",
+        "separator": "separator_Chen2020",
+        "cathode": "nmc_Chen2020",
+        "electrolyte": "lipf6_Nyman2008",
+        "experiment": "1C_discharge_from_full_Chen2020",
+    }
+)
 param.update({
-    "Electrolyte conductivity": "electrolyte_conductivity_Nyman2008.py",
-    "Electrolyte diffusivity": "electrolyte_diffusivity_Nyman2008.py",
-    "Negative electrode OCV": OCP_anode,
-    "Positive electrode OCV": OCP_cathode,
-    "Negative electrode diffusivity": "graphite_LGM50_diffusivity_CC3.py",
-    "Positive electrode diffusivity": "nmc_LGM50_diffusivity_CC3.py",
-    "Negative electrode OCV entropic change": "graphite_LGM50_entropic_change.py",
-    "Positive electrode OCV entropic change": "nmc_LGM50_entropic_change.py",
-    "Negative electrode reaction rate": "graphite_LGM50_electrolyte_reaction_rate.py",
-    "Positive electrode reaction rate": "nmc_LGM50_electrolyte_reaction_rate.py",
-    "Typical current [A]": 5,
-    "Current function": pybamm.GetConstantCurrent()
+    "Negative electrode OCP [V]": OCP_anode,
+    "Positive electrode OCP [V]": OCP_cathode,
 })
 
 data_experiments = pd.read_csv(
-    pybamm.root_dir() + "/results/LGM50/data/data1C.csv"
+    pybamm.root_dir() + "/results/LGM50/data/data1C_rest.csv"
 ).to_numpy()
 
 cspmax = 40000
