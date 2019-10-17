@@ -157,9 +157,10 @@ class ParameterValues(dict):
                         self[name] = getattr(pybamm, value[15:])()
                     # Data is flagged with the string "[data]"
                     elif value.startswith("[data]"):
-                        data = np.loadtxt(os.path.join(path, value[6:] + ".csv"))
+                        data = pd.read_csv(os.path.join(path, value[6:] + ".csv"),
+                        comment="#", skip_blank_lines=True)
                         # Save name and data
-                        self[name] = (value[6:], data)
+                        self[name] = (value[6:], data.to_numpy())
                     # Anything else should be a converted to a float
                     else:
                         self[name] = float(value)
