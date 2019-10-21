@@ -9,8 +9,6 @@ Positive electrode thickness [m],7.9E-5,Chen 2020,
 Positive current collector thickness [m],2.6E-5,Chen 2020,
 Electrode height [m],6.5E-2,Chen 2020,Not needed for 1D
 Electrode width [m],1.58,Chen 2020,Not needed for 1D
-Negative current collector thickness [m],1.5E-5,Chen 2020,
-Positive current collector thickness [m],2.6E-5,Chen 2020,
 Negative tab width [m],0.04,,Need to find actual value for LG M50 cell
 Negative tab centre y-coordinate [m],0.06,,Need to find actual value for LG M50 cell
 Negative tab centre z-coordinate [m],0.137,,Need to find actual value for LG M50 cell
