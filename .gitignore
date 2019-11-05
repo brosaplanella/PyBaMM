@@ -69,4 +69,4 @@ sundials4
 SuiteSparse
 
 # LGM50 files
-results/LGM50
+results/LGM50/data

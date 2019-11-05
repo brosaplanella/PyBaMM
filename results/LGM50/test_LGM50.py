@@ -8,7 +8,7 @@ from autograd.extend import primitive, defvjp
 pybamm.set_logging_level("INFO")
 
 # load model
-model = pybamm.lithium_ion.DFN()
+model = pybamm.lithium_ion.SPMe()
 
 # create geometry
 geometry = model.default_geometry
@@ -44,7 +44,8 @@ dOCP_anode = interpolated_OCP_anode.derivative()
 
 @primitive
 def OCP_cathode(sto):
-    out = interpolated_OCP_cathode(sto)
+    b = - 0.012
+    out = interpolated_OCP_cathode(sto + b)
     if np.size(out) == 1:
         out = np.array([out])[0]
     return out
@@ -89,11 +90,11 @@ param.update({
 })
 
 data_experiments = pd.read_csv(
-    pybamm.root_dir() + "/results/LGM50/data/data1C_rest.csv"
+    pybamm.root_dir() + "/results/LGM50/data/dataC2_rest.csv"
 ).to_numpy()
 
-cspmax = 40000
-csnmax = 35000
+cspmax = 38000 * 1.1
+csnmax = 29000
 
 param["Initial concentration in negative electrode [mol.m-3]"] = 0.95 * csnmax
 param["Initial concentration in positive electrode [mol.m-3]"] = 0.011 * cspmax
@@ -101,6 +102,7 @@ param["Maximum concentration in negative electrode [mol.m-3]"] = csnmax
 param["Maximum concentration in positive electrode [mol.m-3]"] = cspmax
 param["Lower voltage cut-off [V]"] = 2.5
 param["Upper voltage cut-off [V]"] = 4.4
+param["Current function"] = pybamm.GetConstantCurrent(current=pybamm.Scalar(5 * 0.5))
 
 param.process_model(model)
 param.process_geometry(geometry)
@@ -117,8 +119,8 @@ disc.process_model(model)
 # solve model discharge
 # model.use_jacobian = False
 t_eval = np.linspace(0, 3 * 3600 / tau.evaluate(), 1000)
-solver = pybamm.ScikitsOdeSolver()
-# solver = pybamm.ScikitsDaeSolver()
+# solver = pybamm.ScikitsOdeSolver()
+solver = pybamm.ScikitsDaeSolver()
 solution = solver.solve(model, t_eval)
 
 # process variables discharge (the ones that use current)
@@ -140,10 +142,18 @@ phi_e = pybamm.ProcessedVariable(
 #     model.variables['X-averaged battery open circuit voltage [V]'], solution.t,
 #     solution.y, mesh=mesh
 # )
-# etar = pybamm.ProcessedVariable(
-#     model.variables['X-averaged battery reaction overpotential [V]'], solution.t,
-#     solution.y, mesh=mesh
-# )
+etar = pybamm.ProcessedVariable(
+    model.variables['X-averaged battery reaction overpotential [V]'], solution.t,
+    solution.y, mesh=mesh
+)
+etap = pybamm.ProcessedVariable(
+    model.variables['X-averaged positive electrode reaction overpotential [V]'], solution.t,
+    solution.y, mesh=mesh
+)
+etan = pybamm.ProcessedVariable(
+    model.variables['X-averaged negative electrode reaction overpotential [V]'], solution.t,
+    solution.y, mesh=mesh
+)
 # etac = pybamm.ProcessedVariable(
 #     model.variables['X-averaged battery concentration overpotential [V]'], solution.t,
 #     solution.y, mesh=mesh
@@ -226,10 +236,19 @@ phi_e2 = pybamm.ProcessedVariable(
     model.variables['Electrolyte potential [V]'], solution2.t, solution2.y, mesh=mesh
 )
 
-# data_discharge = np.transpose(np.vstack((time(solution.t), voltage(solution.t))))
-# data_rest = np.transpose(np.vstack((time2(solution2.t), voltage2(solution2.t))))
-# data_full = np.vstack((data_discharge, data_rest))
-# np.savetxt("data_SPM.csv", data_full, delimiter=",", header="Time [h], Voltage[V]")
+data_discharge = np.transpose(np.vstack((
+    time(solution.t), voltage(solution.t), c_s_p_nd(solution.t, x=1), c_s_n_nd(solution.t, x=0), etap(solution.t), etan(solution.t)
+)))
+data_rest = np.transpose(np.vstack((
+    time2(solution2.t), voltage2(solution2.t), c_s_p_nd2(solution2.t, x=1), c_s_n_nd2(solution2.t, x=0), 0 * time2(solution2.t), 0 * time2(solution2.t)
+)))
+data_full = np.vstack((data_discharge, data_rest))
+# np.savetxt(
+#     "results/LGM50/data/data_SPMe.csv",
+#     data_full,
+#     delimiter=",",
+#     header="Time [h], Voltage[V], Concentration Positive Electrode (ND), Concentration Negative Electrode (ND), Overpotential Positive Electrode [V], Overpotential Negative Electrode[V]"
+# )
 
 # plt.figure(1)
 # plt.plot(
@@ -237,6 +256,25 @@ phi_e2 = pybamm.ProcessedVariable(
 # )
 # plt.xlabel("t [h]")
 # plt.ylabel("Voltage [V]")
+
+interpolated_voltage = interpolate.PchipInterpolator(
+    data_full[:, 0],
+    data_full[:, 1],
+    extrapolate=True
+)
+
+error = np.absolute(
+    interpolated_voltage(data_experiments[60:-1, 0] / 3600) - data_experiments[60:-1, 1]
+)
+
+rmse = np.sqrt(np.mean(np.square(error)))
+
+print("RMSE: ", rmse)
+
+plt.figure(10)
+plt.plot(data_experiments[60:-1, 0] / 3600, error)
+plt.xlabel("t [h]")
+plt.ylabel("Voltage error [V]")
 
 plt.figure(2)
 plt.fill_between(
@@ -316,14 +354,16 @@ plt.xlabel("SoC")
 plt.ylabel("OCP [V]")
 plt.legend(("positive", "negative"))
 
-# plt.figure(6)
+plt.figure(6)
 # plt.plot(solution.t, Ueq(solution.t), label="OCV")
-# plt.plot(solution.t, etar(solution.t), label="reaction op")
+plt.plot(solution.t, etar(solution.t), label="reaction op")
 # plt.plot(solution.t, etac(solution.t), label="concentration op")
 # plt.plot(solution.t, Dphis(solution.t), label="solid Ohmic")
 # plt.plot(solution.t, Dphie(solution.t), label="electrolyte Ohmic")
-# plt.xlabel("t")
-# plt.ylabel("Voltages [V]")
-# plt.legend()
+# plt.plot(solution.t, etap(solution.t), label="positive overpotential")
+# plt.plot(solution.t, etan(solution.t), label="negative overpotential")
+plt.xlabel("t")
+plt.ylabel("Voltages [V]")
+plt.legend()
 
 plt.show()
