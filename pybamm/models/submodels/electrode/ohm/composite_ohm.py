@@ -77,23 +77,3 @@ class Composite(BaseModel):
             variables.update(self._get_standard_whole_cell_variables(variables))
 
         return variables
-
-    def set_boundary_conditions(self, variables):
-
-        phi_s = variables[self.domain + " electrode potential"]
-        eps_0 = variables[
-            "Leading-order x-averaged " + self.domain.lower() + " electrode porosity"
-        ]
-        i_boundary_cc_0 = variables["Leading-order current collector current density"]
-
-        if self.domain == "Negative":
-            lbc = (pybamm.Scalar(0), "Dirichlet")
-            rbc = (pybamm.Scalar(0), "Neumann")
-
-        elif self.domain == "Positive":
-            lbc = (pybamm.Scalar(0), "Neumann")
-            sigma_eff_0 = self.param.sigma_p * (1 - eps_0) ** self.param.b_p
-            rbc = (-i_boundary_cc_0 / sigma_eff_0, "Neumann")
-
-        self.boundary_conditions[phi_s] = {"left": lbc, "right": rbc}
-
