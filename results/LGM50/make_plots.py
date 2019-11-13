@@ -1,11 +1,7 @@
-#import os
 import pybamm
 import numpy as np
-#from scipy import interpolate, optimize
 import pandas as pd
 import matplotlib.pyplot as plt
-#from matplotlib.ticker import ScalarFormatter, AutoMinorLocator
-#import matplotlib as mpl
 
 plt.rcParams.update({'font.size': 8})
 
@@ -101,9 +97,6 @@ plt.savefig(
 )
 
 
-# Figure 6
-# How do I generate these plots? What is x = 0 and what is x = 1?
-
 # Figure 7
 cathode_dQdE_lithiation = pd.read_csv(
     pybamm.root_dir() + "/results/LGM50/data/cathode_dQdE_lithiation.csv"
@@ -117,21 +110,53 @@ anode_dQdE_lithiation = pd.read_csv(
 anode_dQdE_delithiation = pd.read_csv(
     pybamm.root_dir() + "/results/LGM50/data/anode_dQdE_delithiation.csv"
 )
+cathode_dQdE_pseudo_lithiation = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/cathode_dQdE_pseudo_lithiation.csv"
+)
+cathode_dQdE_pseudo_delithiation = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/cathode_dQdE_pseudo_delithiation.csv"
+)
+anode_dQdE_pseudo_lithiation = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/anode_dQdE_pseudo_lithiation.csv"
+)
+anode_dQdE_pseudo_delithiation = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/anode_dQdE_pseudo_delithiation.csv"
+)
+
+
 
 fig7, axes7 = plt.subplots(1, 2, num=7, figsize=(6, 2.5))
 axes7[0].plot(
     cathode_dQdE_delithiation.to_numpy()[:, 0],
     cathode_dQdE_delithiation.to_numpy()[:, 1],
     color="blue",
-    label="delithiation"
+    linewidth=1,
+    label="delithiation true"
 )
 axes7[0].plot(
     cathode_dQdE_lithiation.to_numpy()[:, 0],
     cathode_dQdE_lithiation.to_numpy()[:, 1],
     color="red",
-    label="lithiation"
+    linewidth=1,
+    label="lithiation true"
 )
-axes7[0].set_xlim(3.5, 4.2)
+axes7[0].plot(
+    cathode_dQdE_pseudo_delithiation.to_numpy()[:, 0],
+    cathode_dQdE_pseudo_delithiation.to_numpy()[:, 1],
+    color="blue",
+    linestyle="--",
+    linewidth=1,
+    label="delithiation pseudo"
+)
+axes7[0].plot(
+    cathode_dQdE_pseudo_lithiation.to_numpy()[:, 0],
+    cathode_dQdE_pseudo_lithiation.to_numpy()[:, 1],
+    color="red",
+    linestyle="--",
+    linewidth=1,
+    label="lithiation pseudo"
+)
+axes7[0].set_xlim(3.5, 4.3)
 axes7[0].set_xlabel("Potential (V)")
 axes7[0].set_ylabel("dQ/dE (mAh/V)")
 axes7[0].set_title("Cathode")
@@ -141,15 +166,33 @@ axes7[1].plot(
     anode_dQdE_delithiation.to_numpy()[:, 0],
     anode_dQdE_delithiation.to_numpy()[:, 1],
     color="blue",
-    label="delithiation"
+    linewidth=1,
+    label="delithiation true"
 )
 axes7[1].plot(
     anode_dQdE_lithiation.to_numpy()[:, 0],
     anode_dQdE_lithiation.to_numpy()[:, 1],
     color="red",
-    label="lithiation"
+    linewidth=1,
+    label="lithiation true"
 )
-axes7[1].set_xlim(0.0, 0.6)
+axes7[1].plot(
+    anode_dQdE_pseudo_delithiation.to_numpy()[:, 0],
+    anode_dQdE_pseudo_delithiation.to_numpy()[:, 1],
+    color="blue",
+    linestyle="--",
+    linewidth=1,
+    label="delithiation pseudo"
+)
+axes7[1].plot(
+    anode_dQdE_pseudo_lithiation.to_numpy()[:, 0],
+    anode_dQdE_pseudo_lithiation.to_numpy()[:, 1],
+    color="red",
+    linestyle="--",
+    linewidth=1,
+    label="lithiation pseudo"
+)
+axes7[1].set_xlim(0.05, 0.4)
 axes7[1].set_xlabel("Potential (V)")
 axes7[1].set_ylabel("dQ/dE (mAh/V)")
 axes7[1].set_title("Anode")
@@ -189,20 +232,22 @@ anode_diffusivity_delithiation = pd.read_csv(
     pybamm.root_dir() + "/results/LGM50/data/anode_diffusivity_delithiation.csv"
 )
 
+cathode_max_cap = np.max(cathode_GITT_delithiation.to_numpy()[:, 0] / A_coin_cathode)
+
 fig8, axes8 = plt.subplots(2, 2, num=8, figsize=(6, 4.5))
 axes8[0, 0].semilogy(
-    cathode_diffusivity_delithiation.to_numpy()[:, 0],
-    10 ** cathode_diffusivity_delithiation.to_numpy()[:, 1] * 1E-4,
-    color="blue", linestyle="None", marker="o", markersize=2, label="delithiation"
+    cathode_diffusivity_delithiation.to_numpy()[:, 0] * cathode_max_cap,
+    10 ** cathode_diffusivity_delithiation.to_numpy()[:, 1],
+    color="blue", linestyle="None", marker="o", markersize=3, label="delithiation"
 )
 axes8[0, 0].semilogy(
-    cathode_diffusivity_lithiation.to_numpy()[:, 0],
-    10 ** cathode_diffusivity_lithiation.to_numpy()[:, 1] * 1E-4,
-    color="red", linestyle="None", marker="o", markersize=2, label="lithiation"
+    cathode_diffusivity_lithiation.to_numpy()[:, 0] * cathode_max_cap,
+    10 ** cathode_diffusivity_lithiation.to_numpy()[:, 1],
+    color="red", linestyle="None", marker="o", markersize=3, label="lithiation"
 )
-axes8[0, 0].set_xlim(0, 1)
-axes8[0, 0].set_xlabel("State of Charge")
-axes8[0, 0].set_ylabel("Diffusivity ($\mathrm{m}^2 \mathrm{s}^{-1}$)")
+axes8[0, 0].set_xlim(left = -1)
+axes8[0, 0].set_xlabel("Capacity (mA h $\mathrm{cm}^{-2}$)")
+axes8[0, 0].set_ylabel("Diffusivity ($\mathrm{cm}^2 \mathrm{s}^{-1}$)")
 axes8[0, 0].set_title("Cathode")
 # axes8[0, 0].legend(loc="upper left")
 
@@ -210,49 +255,50 @@ axes8[1, 0].plot(
     cathode_GITT_delithiation.to_numpy()[:, 0] / A_coin_cathode,
     cathode_GITT_delithiation.to_numpy()[:, 1],
     color="blue",
-    linewidth=0.5,
+    # linewidth=0.5,
     label="delithiation"
 )
 axes8[1, 0].plot(
     cathode_GITT_lithiation.to_numpy()[:, 0] / A_coin_cathode,
     cathode_GITT_lithiation.to_numpy()[:, 1],
     color="red",
-    linewidth=0.5,
+    # linewidth=0.5,
     label="lithiation"
 )
+axes8[1, 0].set_xlim(left = -1)
 axes8[1, 0].set_xlabel("Capacity (mA h $\mathrm{cm}^{-2}$)")
 axes8[1, 0].set_ylabel("Potential (V)")
 axes8[1, 0].set_title("Cathode")
 # axes8[0, 1].legend(loc="upper left")
 
 axes8[0, 1].semilogy(
-    anode_diffusivity_delithiation.to_numpy()[:, 0],
-    10 ** anode_diffusivity_delithiation.to_numpy()[:, 1] * 1E-4,
-    color="blue", linestyle="None", marker="o", markersize=2, label="delithiation"
+    np.abs(anode_diffusivity_delithiation.to_numpy()[:, 0]),
+    anode_diffusivity_delithiation.to_numpy()[:, 1],
+    color="blue", linestyle="solid", marker="o", markersize=3, label="delithiation"
 )
 axes8[0, 1].semilogy(
-    anode_diffusivity_lithiation.to_numpy()[:, 0],
-    10 ** anode_diffusivity_lithiation.to_numpy()[:, 1] * 1E-4,
-    color="red", linestyle="None", marker="o", markersize=2, label="lithiation"
+    np.abs(anode_diffusivity_lithiation.to_numpy()[:, 0]),
+    anode_diffusivity_lithiation.to_numpy()[:, 1],
+    color="red", linestyle="solid", marker="o", markersize=3, label="lithiation"
 )
-axes8[0, 1].set_xlim(0, 1)
-axes8[0, 1].set_xlabel("State of Charge")
-axes8[0, 1].set_ylabel("Diffusivity ($\mathrm{m}^2 \mathrm{s}^{-1}$)")
+# axes8[0, 1].set_xlim(0, 1)
+axes8[0, 1].set_xlabel("Capacity (mA h $\mathrm{cm}^{-2}$)")
+axes8[0, 1].set_ylabel("Diffusivity ($\mathrm{cm}^2 \mathrm{s}^{-1}$)")
 axes8[0, 1].set_title("Anode")
 # axes8[1, 0].legend(loc="upper left")
 
 axes8[1, 1].plot(
-    anode_GITT_delithiation.to_numpy()[:, 0] / A_coin_anode,
+    np.abs(anode_GITT_delithiation.to_numpy()[:, 0]),
     anode_GITT_delithiation.to_numpy()[:, 1],
     color="blue",
-    linewidth=0.5,
+    # linewidth=0.5,
     label="delithiation"
 )
 axes8[1, 1].plot(
-    anode_GITT_lithiation.to_numpy()[:, 0] / A_coin_anode,
+    np.abs(anode_GITT_lithiation.to_numpy()[:, 0]),
     anode_GITT_lithiation.to_numpy()[:, 1],
     color="red",
-    linewidth=0.5,
+    # linewidth=0.5,
     label="lithiation"
 )
 axes8[1, 1].set_xlabel("Capacity (mA h $\mathrm{cm}^{-2}$)")
@@ -504,7 +550,7 @@ plt.plot(
     color="red",
     label="anode"
 )
-plt.xlabel("1000/T ($\mathrm{m}^{-1})$")
+plt.xlabel("1000/T ($\mathrm{K}^{-1})$")
 plt.ylabel("$\ln(j_0)$")
 plt.legend()
 
@@ -551,299 +597,5 @@ plt.savefig(
     pybamm.root_dir() + "/results/LGM50/figures/fig14.png",
     dpi=300
 )
-
-# Figure 15
-# full_cell_0pt02C_OCV_ch = pd.read_csv(
-#     pybamm.root_dir() + "/results/LGM50/data/full_cell_0pt02C_OCV_ch.csv"
-# )
-# full_cell_0pt02C_OCV_dch = pd.read_csv(
-#     pybamm.root_dir() + "/results/LGM50/data/full_cell_0pt02C_OCV_dch.csv"
-# )
-
-# idx_cathode = np.argmax(cathode_0pt02C_OCP.to_numpy()[:, 0])
-# idx_anode = np.argmax(-anode_0pt02C_OCP.to_numpy()[:, 0])
-
-# interpolated_cathode_delithiation = interpolate.PchipInterpolator(
-#     cathode_0pt02C_OCP.to_numpy()[10:idx_cathode, 0] / A_coin_cathode,
-#     cathode_0pt02C_OCP.to_numpy()[10:idx_cathode, 4],
-#     extrapolate=True
-# )
-
-# interpolated_cathode_lithiation = interpolate.PchipInterpolator(
-#     cathode_0pt02C_OCP.to_numpy()[-1:idx_cathode:-1, 0] / A_coin_cathode,
-#     cathode_0pt02C_OCP.to_numpy()[-1:idx_cathode:-1, 4],
-#     extrapolate=True
-# )
-
-# interpolated_anode_lithiation = interpolate.PchipInterpolator(
-#     -anode_0pt02C_OCP.to_numpy()[0:idx_anode, 0] / A_coin_anode,
-#     anode_0pt02C_OCP.to_numpy()[0:idx_anode, 3],
-#     extrapolate=True
-# )
-
-# interpolated_anode_delithiation = interpolate.PchipInterpolator(
-#     -anode_0pt02C_OCP.to_numpy()[-1:idx_anode:-1, 0] / A_coin_anode,
-#     anode_0pt02C_OCP.to_numpy()[-1:idx_anode:-1, 3],
-#     extrapolate=True
-# )
-
-
-# plt.figure(15)
-# plt.plot(
-#     cathode_0pt02C_OCP.to_numpy()[:, 0] / A_coin_cathode,
-#     #- cathode_0pt02C_OCP.to_numpy()[-1, 0] / A_coin_cathode,
-#     cathode_0pt02C_OCP.to_numpy()[:, 4],
-#     color="blue", label="cathode"
-# )
-# plt.plot(
-#     -anode_0pt02C_OCP.to_numpy()[:, 0] / A_coin_anode,
-#     anode_0pt02C_OCP.to_numpy()[:, 3],
-#     color="red", label="anode"
-# )
-# plt.plot(
-#     full_cell_0pt02C_OCV_dch.to_numpy()[:, 0] / A_coin_cathode,
-#     full_cell_0pt02C_OCV_dch.to_numpy()[:, 4],
-#     color="black", label="full cell"
-# )
-# plt.plot(
-#     full_cell_0pt02C_OCV_ch.to_numpy()[:, 0] / A_coin_cathode,
-#     full_cell_0pt02C_OCV_ch.to_numpy()[:, 4],
-#     color="black"
-# )
-# plt.xlabel("Capacity (mA h $\mathrm{cm}^{-2}$)")
-# plt.ylabel("Potential (V)")
-
-
-# def error_function_dch(params):
-#     model = interpolated_cathode_lithiation(
-#         params[0] + full_cell_0pt02C_OCV_dch.to_numpy()[:, 0] / A_coin_cathode
-#     ) - interpolated_anode_delithiation(
-#         params[1] + full_cell_0pt02C_OCV_dch.to_numpy()[:, 0] / A_coin_cathode
-#     )
-#     return np.linalg.norm(model - full_cell_0pt02C_OCV_dch.to_numpy()[:, 4])
-
-
-# def error_function_ch(params):
-#     model = interpolated_cathode_delithiation(
-#         params[0] + full_cell_0pt02C_OCV_ch.to_numpy()[:, 0] / A_coin_cathode
-#     ) - interpolated_anode_lithiation(
-#         params[1] + full_cell_0pt02C_OCV_ch.to_numpy()[:, 0] / A_coin_cathode
-#     )
-#     return np.linalg.norm(model - full_cell_0pt02C_OCV_ch.to_numpy()[:, 4])
-
-# idx_ch = np.argmax(full_cell_0pt02C_OCV_ch.to_numpy()[:, 0] > 0.5 * A_coin_cathode)
-# idx_dch = np.argmax(full_cell_0pt02C_OCV_dch.to_numpy()[:, 0] < 0.5 * A_coin_cathode)
-
-# idx_dch = -1
-# idx_ch = 0
-
-
-# def error_function_full(params):
-#     model_dch = interpolated_cathode_lithiation(
-#         params[0] + full_cell_0pt02C_OCV_dch.to_numpy()[0:idx_dch, 0] / A_coin_cathode
-#     ) - interpolated_anode_delithiation(
-#         params[1] + full_cell_0pt02C_OCV_dch.to_numpy()[0:idx_dch, 0] / A_coin_cathode
-#     )
-#     model_ch = interpolated_cathode_delithiation(
-#         params[0] + full_cell_0pt02C_OCV_ch.to_numpy()[idx_ch:-1, 0] / A_coin_cathode
-#     ) - interpolated_anode_lithiation(
-#         params[1] + full_cell_0pt02C_OCV_ch.to_numpy()[idx_ch:-1, 0] / A_coin_cathode
-#     )
-#     error = np.linalg.norm(
-#         model_dch - full_cell_0pt02C_OCV_dch.to_numpy()[0:idx_dch, 4]
-#     ) + np.linalg.norm(
-#         model_ch - full_cell_0pt02C_OCV_ch.to_numpy()[idx_ch:-1, 4]
-#     )
-#     return error
-
-
-# optimal_dch = optimize.minimize(
-#     error_function_dch, (0.15, 0.1), method="Nelder-Mead",
-#     options={"xatol": 1E-6, "fatol": 1E-6}
-# )
-
-# shift_dch = optimal_dch.x
-# print("Shift discharge: ", optimal_dch.x)
-# print("Error discharge: ", optimal_dch.fun)
-
-# optimal_ch = optimize.minimize(
-#     error_function_ch, (0.15, 0.1), method="Nelder-Mead",
-#     options={"xatol": 1E-6, "fatol": 1E-6}
-# )
-
-# shift_ch = optimal_ch.x
-# print("Shift discharge: ", optimal_ch.x)
-# print("Error discharge: ", optimal_ch.fun)
-
-# optimal_full = optimize.minimize(
-#     error_function_full, (0.1, 0.1), method="Nelder-Mead"
-# )
-
-# shift_full = optimal_full.x
-# print("Shift full: ", optimal_full.x)
-# print("Error full: ", optimal_full.fun)
-# print("Error full (dch): ", error_function_dch(shift_full))
-# print("Error full (ch): ", error_function_ch(shift_full))
-
-
-# plt.figure(151)
-# plt.scatter(
-#     full_cell_0pt02C_OCV_dch.to_numpy()[:, 0] / A_coin_cathode,
-#     full_cell_0pt02C_OCV_dch.to_numpy()[:, 4],
-#     color="gray", s=3
-# )
-# plt.plot(
-#     full_cell_0pt02C_OCV_dch.to_numpy()[:, 0] / A_coin_cathode,
-#     interpolated_cathode_lithiation(
-#         shift_dch[0] + full_cell_0pt02C_OCV_dch.to_numpy()[:, 0] / A_coin_cathode
-#     )
-#     - interpolated_anode_delithiation(
-#         shift_dch[1] + full_cell_0pt02C_OCV_dch.to_numpy()[:, 0] / A_coin_cathode
-#     ),
-#     color="black"
-# )
-# plt.plot(
-#     shift_dch[0] + cathode_0pt02C_OCP.to_numpy()[-1:idx_cathode:-1, 0] / A_coin_cathode,
-#     cathode_0pt02C_OCP.to_numpy()[-1:idx_cathode:-1, 4],
-#     color="blue"
-# )
-# plt.plot(
-#     -shift_dch[1] - anode_0pt02C_OCP.to_numpy()[-1:idx_anode:-1, 0] / A_coin_anode,
-#     anode_0pt02C_OCP.to_numpy()[-1:idx_anode:-1, 3],
-#     color="red"
-# )
-# plt.xlabel("Capacity (mA h $\mathrm{cm}^{-2}$)")
-# plt.ylabel("Potential (V)")
-# plt.title("Discharge")
-# plt.ylim(0, 5)
-
-
-# plt.figure(152)
-# plt.scatter(
-#     full_cell_0pt02C_OCV_ch.to_numpy()[:, 0] / A_coin_cathode,
-#     full_cell_0pt02C_OCV_ch.to_numpy()[:, 4],
-#     color="gray", s=3
-# )
-# plt.plot(
-#     full_cell_0pt02C_OCV_ch.to_numpy()[:, 0] / A_coin_cathode,
-#     interpolated_cathode_delithiation(
-#         shift_ch[0] + full_cell_0pt02C_OCV_ch.to_numpy()[:, 0] / A_coin_cathode
-#     )
-#     - interpolated_anode_lithiation(
-#         shift_ch[1] + full_cell_0pt02C_OCV_ch.to_numpy()[:, 0] / A_coin_cathode
-#     ),
-#     color="black"
-# )
-# plt.plot(
-#     shift_ch[0] + cathode_0pt02C_OCP.to_numpy()[0:idx_cathode, 0] / A_coin_cathode,
-#     cathode_0pt02C_OCP.to_numpy()[0:idx_cathode, 4],
-#     color="blue"
-# )
-# plt.plot(
-#     -shift_ch[1] - anode_0pt02C_OCP.to_numpy()[0:idx_anode, 0] / A_coin_anode,
-#     anode_0pt02C_OCP.to_numpy()[0:idx_anode, 3],
-#     color="red"
-# )
-# plt.xlabel("Capacity (mA h $\mathrm{cm}^{-2}$)")
-# plt.ylabel("Potential (V)")
-# plt.title("Charge")
-# plt.ylim(0, 5)
-
-
-# plt.figure(153)
-# plt.scatter(
-#     full_cell_0pt02C_OCV_ch.to_numpy()[:, 0] / A_coin_cathode,
-#     full_cell_0pt02C_OCV_ch.to_numpy()[:, 4],
-#     color="gray", s=3, label="experimental full cell"
-# )
-# plt.scatter(
-#     full_cell_0pt02C_OCV_dch.to_numpy()[:, 0] / A_coin_cathode,
-#     full_cell_0pt02C_OCV_dch.to_numpy()[:, 4],
-#     color="gray", s=3
-# )
-# plt.plot(
-#     full_cell_0pt02C_OCV_ch.to_numpy()[idx_ch:-1, 0] / A_coin_cathode,
-#     interpolated_cathode_delithiation(
-#         shift_full[0] + full_cell_0pt02C_OCV_ch.to_numpy()[idx_ch:-1, 0] / A_coin_cathode
-#     )
-#     - interpolated_anode_lithiation(
-#         shift_full[1] +
-#         full_cell_0pt02C_OCV_ch.to_numpy()[idx_ch:-1, 0] / A_coin_cathode
-#     ),
-#     color="black", label="theoretical full cell"
-# )
-# plt.plot(
-#     full_cell_0pt02C_OCV_dch.to_numpy()[0:idx_dch, 0] / A_coin_cathode,
-#     interpolated_cathode_lithiation(
-#         shift_full[0] +
-#         full_cell_0pt02C_OCV_dch.to_numpy()[0:idx_dch, 0] / A_coin_cathode
-#     )
-#     - interpolated_anode_delithiation(
-#         shift_full[1] + full_cell_0pt02C_OCV_dch.to_numpy()[0:idx_dch, 0] / A_coin_cathode
-#     ),
-#     color="black"
-# )
-# plt.plot(
-#     shift_full[0] + cathode_0pt02C_OCP.to_numpy()[:, 0] / A_coin_cathode,
-#     cathode_0pt02C_OCP.to_numpy()[:, 4],
-#     color="blue", label="cathode"
-# )
-# plt.plot(
-#     -shift_full[1] - anode_0pt02C_OCP.to_numpy()[:, 0] / A_coin_anode,
-#     anode_0pt02C_OCP.to_numpy()[:, 3],
-#     color="red", label="anode"
-# )
-# plt.xlabel("Capacity (mA h $\mathrm{cm}^{-2}$)")
-# plt.ylabel("Potential (V)")
-# plt.legend()
-# plt.ylim(0, 5)
-
-# plt.savefig(
-#     pybamm.root_dir() + "/results/LGM50/figures/fig15a.png",
-#     dpi=300
-# )
-
-
-# plt.figure(154)
-# plt.scatter(
-#     full_cell_0pt02C_OCV_ch.to_numpy()[:, 0] / A_coin_cathode,
-#     full_cell_0pt02C_OCV_ch.to_numpy()[:, 4],
-#     color="gray", s=3, label="experimental full cell"
-# )
-# plt.scatter(
-#     full_cell_0pt02C_OCV_dch.to_numpy()[:, 0] / A_coin_cathode,
-#     full_cell_0pt02C_OCV_dch.to_numpy()[:, 4],
-#     color="gray", s=3
-# )
-# plt.plot(
-#     full_cell_0pt02C_OCV_ch.to_numpy()[idx_ch:-1, 0] / A_coin_cathode,
-#     interpolated_cathode_delithiation(
-#         shift_full[0] + full_cell_0pt02C_OCV_ch.to_numpy()[idx_ch:-1, 0] / A_coin_cathode
-#     )
-#     - interpolated_anode_lithiation(
-#         shift_full[1] + full_cell_0pt02C_OCV_ch.to_numpy()[idx_ch:-1, 0] / A_coin_cathode
-#     ),
-#     color="black", label="theoretical full cell"
-# )
-# plt.plot(
-#     full_cell_0pt02C_OCV_dch.to_numpy()[0:idx_dch, 0] / A_coin_cathode,
-#     interpolated_cathode_lithiation(
-#         shift_full[0] +
-#         full_cell_0pt02C_OCV_dch.to_numpy()[0:idx_dch, 0] / A_coin_cathode
-#     )
-#     - interpolated_anode_delithiation(
-#         shift_full[1] +
-#         full_cell_0pt02C_OCV_dch.to_numpy()[0:idx_dch, 0] / A_coin_cathode
-#     ),
-#     color="black"
-# )
-# plt.xlabel("Capacity (mA h $\mathrm{cm}^{-2}$)")
-# plt.ylabel("Potential (V)")
-# plt.legend()
-
-# plt.savefig(
-#     pybamm.root_dir() + "/results/LGM50/figures/fig15b.png",
-#     dpi=300
-# )
 
 plt.show()

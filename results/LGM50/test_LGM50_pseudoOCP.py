@@ -16,7 +16,7 @@ geometry = model.default_geometry
 # define OCP functions
 data_cathode = pd.read_csv(
     pybamm.root_dir() +
-    "/input/parameters/lithium-ion/cathodes/nmc_Chen2020/nmc_LGM50_ocp_Chen2020.csv",
+    "/results/LGM50/data/nmc_LGM50_pseudoocp_Chen2020.csv",
     comment="#", skip_blank_lines=True
 )
 
@@ -28,7 +28,7 @@ interpolated_OCP_cathode = interpolate.PchipInterpolator(
 
 data_anode = pd.read_csv(
     pybamm.root_dir() +
-    "/input/parameters/lithium-ion/anodes/graphite_Chen2020/graphite_LGM50_ocp_Chen2020.csv",
+    "/results/LGM50/data/graphite_LGM50_pseudoocp_Chen2020.csv",
     comment="#", skip_blank_lines=True
 )
 
@@ -44,7 +44,7 @@ dOCP_anode = interpolated_OCP_anode.derivative()
 
 @primitive
 def OCP_cathode(sto):
-    b = - 0.012
+    b = - 0.012 / 1.5
     out = interpolated_OCP_cathode(sto + b)
     if np.size(out) == 1:
         out = np.array([out])[0]
@@ -53,7 +53,8 @@ def OCP_cathode(sto):
 
 @primitive
 def OCP_anode(sto):
-    out = interpolated_OCP_anode(sto)
+    b = - 0.05
+    out = interpolated_OCP_anode(sto + b)
     if np.size(out) == 1:
         out = np.array([out])[0]
     return out
@@ -96,7 +97,7 @@ data_experiments = pd.read_csv(
 cspmax = 38000 * 1.1
 csnmax = 29000
 
-param["Initial concentration in negative electrode [mol.m-3]"] = 0.95 * csnmax
+param["Initial concentration in negative electrode [mol.m-3]"] = 0.9 * csnmax
 param["Initial concentration in positive electrode [mol.m-3]"] = 0.011 * cspmax
 param["Maximum concentration in negative electrode [mol.m-3]"] = csnmax
 param["Maximum concentration in positive electrode [mol.m-3]"] = cspmax
@@ -119,8 +120,8 @@ disc.process_model(model)
 # solve model discharge
 # model.use_jacobian = False
 t_eval = np.linspace(0, 3 * 3600 / tau.evaluate(), 1000)
-# solver = pybamm.ScikitsOdeSolver()
-solver = pybamm.ScikitsDaeSolver()
+solver = pybamm.ScikitsOdeSolver()
+# solver = pybamm.ScikitsDaeSolver()
 solution = solver.solve(model, t_eval)
 
 # process variables discharge (the ones that use current)
@@ -334,7 +335,7 @@ plt.ylabel("Potential [V]")
 plt.legend()
 
 plt.figure(5)
-plt.plot(np.linspace(0, 1, 1E3), OCP_cathode(np.linspace(0, 1, 1E3)), color="C0")
+plt.plot(np.linspace(0.1, 1, 1E3), OCP_cathode(np.linspace(0.1, 1, 1E3)), color="C0")
 plt.plot(np.linspace(0, 1, 1E3), OCP_anode(np.linspace(0, 1, 1E3)), color="C1")
 plt.plot(
     np.array([c_s_p_nd(solution.t[-1], x=1), c_s_n_nd(solution.t[-1], x=0)]),
