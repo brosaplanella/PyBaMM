@@ -8,69 +8,39 @@ from autograd.extend import primitive, defvjp
 pybamm.set_logging_level("INFO")
 
 # load model
-model = pybamm.lithium_ion.SPMe()
+model = pybamm.lithium_ion.DFN()
 
 # create geometry
 geometry = model.default_geometry
 
 # define OCP functions
-data_cathode = pd.read_csv(
-    pybamm.root_dir() +
-    "/input/parameters/lithium-ion/cathodes/nmc_Chen2020/nmc_LGM50_ocp_Chen2020.csv",
-    comment="#", skip_blank_lines=True
-)
+# data_cathode = pd.read_csv(
+#     pybamm.root_dir() +
+#     "/input/parameters/lithium-ion/cathodes/nmc_Chen2020/nmc_LGM50_ocp_Chen2020.csv",
+#     comment="#", skip_blank_lines=True
+# )
 
-interpolated_OCP_cathode = interpolate.PchipInterpolator(
-    data_cathode.to_numpy()[:, 0],
-    data_cathode.to_numpy()[:, 1],
-    extrapolate=True
-)
+# interpolated_OCP_cathode = interpolate.PchipInterpolator(
+#     data_cathode.to_numpy()[:, 0],
+#     data_cathode.to_numpy()[:, 1],
+#     extrapolate=True
+# )
 
-data_anode = pd.read_csv(
-    pybamm.root_dir() +
-    "/input/parameters/lithium-ion/anodes/graphite_Chen2020/graphite_LGM50_ocp_Chen2020.csv",
-    comment="#", skip_blank_lines=True
-)
+# dOCP_cathode = interpolated_OCP_cathode.derivative()
 
-interpolated_OCP_anode = interpolate.PchipInterpolator(
-    data_anode.to_numpy()[:, 0],
-    data_anode.to_numpy()[:, 1],
-    extrapolate=True
-)
+# @primitive
+# def OCP_cathode(sto):
+#     b = - 0.012
+#     out = interpolated_OCP_cathode(sto + b)
+#     if np.size(out) == 1:
+#         out = np.array([out])[0]
+#     return out
 
-dOCP_cathode = interpolated_OCP_cathode.derivative()
-dOCP_anode = interpolated_OCP_anode.derivative()
+# def OCP_cathode_vjp(ans, sto):
+#     sto_shape = sto.shape
+#     return lambda g: np.full(sto_shape, g) * dOCP_cathode(sto)
 
-
-@primitive
-def OCP_cathode(sto):
-    b = - 0.012
-    out = interpolated_OCP_cathode(sto + b)
-    if np.size(out) == 1:
-        out = np.array([out])[0]
-    return out
-
-
-@primitive
-def OCP_anode(sto):
-    out = interpolated_OCP_anode(sto)
-    if np.size(out) == 1:
-        out = np.array([out])[0]
-    return out
-
-
-def OCP_cathode_vjp(ans, sto):
-    sto_shape = sto.shape
-    return lambda g: np.full(sto_shape, g) * dOCP_cathode(sto)
-
-
-def OCP_anode_vjp(ans, sto):
-    sto_shape = sto.shape
-    return lambda g: np.full(sto_shape, g) * dOCP_anode(sto)
-
-
-defvjp(OCP_cathode, OCP_cathode_vjp)
-defvjp(OCP_anode, OCP_anode_vjp)
+# defvjp(OCP_cathode, OCP_cathode_vjp)
 
 # load parameter values and process model and geometry
 param = pybamm.ParameterValues(
@@ -84,25 +54,44 @@ param = pybamm.ParameterValues(
         "experiment": "1C_discharge_from_full_Chen2020",
     }
 )
-param.update({
-    "Negative electrode OCP [V]": OCP_anode,
-    "Positive electrode OCP [V]": OCP_cathode,
-})
+# param.update({
+#     "Negative electrode OCP [V]": OCP_anode,
+#     "Positive electrode OCP [V]": OCP_cathode,
+# })
 
 data_experiments = pd.read_csv(
-    pybamm.root_dir() + "/results/LGM50/data/data1C_rest.csv"
+    pybamm.root_dir() + "/results/LGM50/data/data15C_rest.csv"
 ).to_numpy()
 
-cspmax = 38000 * 1.1
-csnmax = 29000
 
-param["Initial concentration in negative electrode [mol.m-3]"] = 0.95 * csnmax
-param["Initial concentration in positive electrode [mol.m-3]"] = 0.011 * cspmax
+# OLD PARAMETERISATION
+# cspmax = 38000 * 1.1
+# csnmax = 29000
+
+# cspmax = 29863 * 1.3
+# cspmax = 32349 * 1.2
+# csnmax = 29189
+
+param["Positive electrode conductivity [S.m-1]"] = 0.18 * 5
+
+param["Negative electrode porosity"] = 0.27
+param["Positive electrode porosity"] = 0.26
+
+# param["Negative electrode surface area density [m-1]"] = 419540
+# param["Positive electrode surface area density [m-1]"] = 377166
+# param["Initial concentration in negative electrode [mol.m-3]"] = 0.935 * csnmax
+# param["Initial concentration in positive electrode [mol.m-3]"] = 0.011 * cspmax
+
+cspmax = 44009 * 1.23
+csnmax = 29924 * 1.02
+
+param["Initial concentration in negative electrode [mol.m-3]"] = 0.899 * csnmax
+param["Initial concentration in positive electrode [mol.m-3]"] = 0.286 * cspmax
 param["Maximum concentration in negative electrode [mol.m-3]"] = csnmax
 param["Maximum concentration in positive electrode [mol.m-3]"] = cspmax
 param["Lower voltage cut-off [V]"] = 2.5
 param["Upper voltage cut-off [V]"] = 4.4
-param["Current function"] = pybamm.GetConstantCurrent(current=pybamm.Scalar(5))
+param["Current function"] = pybamm.GetConstantCurrent(current=pybamm.Scalar(5 * 1.5))
 
 param.process_model(model)
 param.process_geometry(geometry)
@@ -117,7 +106,6 @@ disc = pybamm.Discretisation(mesh, model.default_spatial_methods)
 disc.process_model(model)
 
 # solve model discharge
-# model.use_jacobian = False
 t_eval = np.linspace(0, 3 * 3600 / tau.evaluate(), 1000)
 # solver = pybamm.ScikitsOdeSolver()
 solver = pybamm.ScikitsDaeSolver()
@@ -136,56 +124,8 @@ phi_n = pybamm.ProcessedVariable(
 phi_e = pybamm.ProcessedVariable(
     model.variables['Electrolyte potential [V]'], solution.t, solution.y, mesh=mesh
 )
-
-
-# Ueq = pybamm.ProcessedVariable(
-#     model.variables['X-averaged battery open circuit voltage [V]'], solution.t,
-#     solution.y, mesh=mesh
-# )
-etar = pybamm.ProcessedVariable(
-    model.variables['X-averaged battery reaction overpotential [V]'], solution.t,
-    solution.y, mesh=mesh
-)
-etap = pybamm.ProcessedVariable(
-    model.variables['X-averaged positive electrode reaction overpotential [V]'], solution.t,
-    solution.y, mesh=mesh
-)
-etan = pybamm.ProcessedVariable(
-    model.variables['X-averaged negative electrode reaction overpotential [V]'], solution.t,
-    solution.y, mesh=mesh
-)
-# etac = pybamm.ProcessedVariable(
-#     model.variables['X-averaged battery concentration overpotential [V]'], solution.t,
-#     solution.y, mesh=mesh
-# )
-# Dphis = pybamm.ProcessedVariable(
-#     model.variables['X-averaged battery solid phase ohmic losses [V]'], solution.t,
-#     solution.y, mesh=mesh
-# )
-# Dphie = pybamm.ProcessedVariable(
-#     model.variables['X-averaged battery electrolyte ohmic losses [V]'], solution.t,
-#     solution.y, mesh=mesh
-# )
-
-# solve model rest
-param["Current function"] = pybamm.GetConstantCurrent(current=pybamm.Scalar(0))
-param.update_model(model, disc)
-model.concatenated_initial_conditions = solution.y_event
-t_eval2 = np.linspace(
-    solution.t_event[0], solution.t_event[0] + 2 * 3600 / tau.evaluate(), 200
-)
-solution2 = solver.solve(model, t_eval2)
-
-# quick plot
-# plot = pybamm.QuickPlot(model, mesh, solution)
-# plot.dynamic_plot()
-
-# plot = pybamm.QuickPlot(model, mesh, solution2)
-# plot.dynamic_plot()
-
-# other plots
-voltage2 = pybamm.ProcessedVariable(
-    model.variables['Terminal voltage [V]'], solution2.t, solution2.y, mesh=mesh
+time = pybamm.ProcessedVariable(
+    model.variables['Time [h]'], solution.t, solution.y, mesh=mesh
 )
 c_s_n_surf = pybamm.ProcessedVariable(
     model.variables['Negative particle surface concentration [mol.m-3]'], solution.t,
@@ -199,6 +139,61 @@ c_s_n_nd = pybamm.ProcessedVariable(
     model.variables['Negative particle surface concentration'], solution.t, solution.y,
     mesh=mesh
 )
+c_s_p_nd = pybamm.ProcessedVariable(
+    model.variables['Positive particle surface concentration'], solution.t, solution.y,
+    mesh=mesh
+)
+
+Ueq = pybamm.ProcessedVariable(
+    model.variables['X-averaged battery open circuit voltage [V]'], solution.t,
+    solution.y, mesh=mesh
+)
+
+etar = pybamm.ProcessedVariable(
+    model.variables['X-averaged battery reaction overpotential [V]'], solution.t,
+    solution.y, mesh=mesh
+)
+etap = pybamm.ProcessedVariable(
+    model.variables['X-averaged positive electrode reaction overpotential [V]'], solution.t,
+    solution.y, mesh=mesh
+)
+etan = pybamm.ProcessedVariable(
+    model.variables['X-averaged negative electrode reaction overpotential [V]'], solution.t,
+    solution.y, mesh=mesh
+)
+
+# etac = pybamm.ProcessedVariable(
+#     model.variables['X-averaged battery concentration overpotential [V]'], solution.t,
+#     solution.y, mesh=mesh
+# )
+# Dphis = pybamm.ProcessedVariable(
+#     model.variables['X-averaged battery solid phase ohmic losses [V]'], solution.t,
+#     solution.y, mesh=mesh
+# )
+# Dphie = pybamm.ProcessedVariable(
+#     model.variables['X-averaged battery electrolyte ohmic losses [V]'], solution.t,
+#     solution.y, mesh=mesh
+# )
+
+
+# solve model rest
+param["Current function"] = pybamm.GetConstantCurrent(current=pybamm.Scalar(0))
+param.update_model(model, disc)
+model.concatenated_initial_conditions = solution.y_event
+model.events = {}
+t_eval2 = np.linspace(
+    solution.t_event[0], solution.t_event[0] + 2 * 3600 / tau.evaluate(), 200
+)
+solution2 = solver.solve(model, t_eval2)
+
+# plot = pybamm.QuickPlot(model, mesh, solution2)
+# plot.dynamic_plot()
+
+
+# other plots
+voltage2 = pybamm.ProcessedVariable(
+    model.variables['Terminal voltage [V]'], solution2.t, solution2.y, mesh=mesh
+)
 c_s_n_nd2 = pybamm.ProcessedVariable(
     model.variables['Negative particle surface concentration'], solution2.t,
     solution2.y, mesh=mesh
@@ -207,10 +202,6 @@ c_s_n_nd2 = pybamm.ProcessedVariable(
 #     model.variables['X-averaged negative particle surface concentration'], solution.t,
 #     solution.y, mesh=mesh
 # )
-c_s_p_nd = pybamm.ProcessedVariable(
-    model.variables['Positive particle surface concentration'], solution.t, solution.y,
-    mesh=mesh
-)
 c_s_p_nd2 = pybamm.ProcessedVariable(
     model.variables['Positive particle surface concentration'], solution2.t,
     solution2.y, mesh=mesh
@@ -219,9 +210,6 @@ c_s_p_nd2 = pybamm.ProcessedVariable(
 #     model.variables['X-averaged positive particle surface concentration'], solution.t,
 #     solution.y, mesh=mesh
 # )
-time = pybamm.ProcessedVariable(
-    model.variables['Time [h]'], solution.t, solution.y, mesh=mesh
-)
 time2 = pybamm.ProcessedVariable(
     model.variables['Time [h]'], solution2.t, solution2.y, mesh=mesh
 )
@@ -234,6 +222,10 @@ phi_n2 = pybamm.ProcessedVariable(
 )
 phi_e2 = pybamm.ProcessedVariable(
     model.variables['Electrolyte potential [V]'], solution2.t, solution2.y, mesh=mesh
+)
+Ueq2 = pybamm.ProcessedVariable(
+    model.variables['X-averaged battery open circuit voltage [V]'], solution2.t,
+    solution2.y, mesh=mesh
 )
 
 data_discharge = np.transpose(np.vstack((
@@ -270,6 +262,7 @@ error = np.absolute(
 rmse = np.sqrt(np.mean(np.square(error)))
 
 print("RMSE: ", rmse)
+print("Peak error: ", np.max(error))
 
 plt.figure(10)
 plt.plot(data_experiments[60:-1, 0] / 3600, error)
@@ -286,19 +279,19 @@ plt.fill_between(
 )
 plt.plot(
     np.array([data_experiments[0, 0] / 3600, 0]),
-    (OCP_cathode(c_s_p_nd(0, x=1)) - OCP_anode(c_s_n_nd(0, x=0))) * np.ones(2),
+    Ueq(solution.t[0]) * np.ones(2),
     color="C1"
 )
 plt.plot(time(solution.t), voltage(solution.t), color="C1", label="model")
 plt.plot(time2(solution2.t), voltage2(solution2.t), color="C1")
 plt.plot(
     time(solution.t),
-    OCP_cathode(c_s_p_nd(solution.t, x=1)) - OCP_anode(c_s_n_nd(solution.t, x=0)),
+    Ueq(solution.t),
     color="black", linestyle="--", label="OCV"
 )
 plt.plot(
     time2(solution2.t),
-    OCP_cathode(c_s_p_nd2(solution2.t, x=1)) - OCP_anode(c_s_n_nd2(solution2.t, x=0)),
+    Ueq2(solution2.t),
     color="black", linestyle="--"
 )
 plt.xlabel("t [h]")
@@ -310,8 +303,9 @@ plt.plot(time(solution.t), c_s_p_nd(solution.t, x=1), color="C1", label="positiv
 plt.plot(time2(solution2.t), c_s_p_nd2(solution2.t, x=1), color="C1")
 plt.plot(time(solution.t), c_s_n_nd(solution.t, x=0), color="C0", label="negative")
 plt.plot(time2(solution2.t), c_s_n_nd2(solution2.t, x=0), color="C0")
+plt.ylim((0, 1))
 plt.xlabel("t [h]")
-plt.ylabel("Concentration surface")
+plt.ylabel("Surface concentration")
 plt.legend()
 
 plt.figure(4)
@@ -333,26 +327,26 @@ plt.xlabel("t [h]")
 plt.ylabel("Potential [V]")
 plt.legend()
 
-plt.figure(5)
-plt.plot(np.linspace(0, 1, 1E3), OCP_cathode(np.linspace(0, 1, 1E3)), color="C0")
-plt.plot(np.linspace(0, 1, 1E3), OCP_anode(np.linspace(0, 1, 1E3)), color="C1")
-plt.plot(
-    np.array([c_s_p_nd(solution.t[-1], x=1), c_s_n_nd(solution.t[-1], x=0)]),
-    np.array([
-        OCP_cathode(c_s_p_nd(solution.t[-1], x=1)),
-        OCP_anode(c_s_n_nd(solution.t[-1], x=0))
-    ]), 'ko'
-)
-plt.plot(
-    np.array([c_s_p_nd2(solution2.t[-1], x=1), c_s_n_nd2(solution2.t[-1], x=0)]),
-    np.array([
-        OCP_cathode(c_s_p_nd2(solution2.t[-1], x=1)),
-        OCP_anode(c_s_n_nd2(solution2.t[-1], x=0))
-    ]), 'kx'
-)
-plt.xlabel("SoC")
-plt.ylabel("OCP [V]")
-plt.legend(("positive", "negative"))
+# plt.figure(5)
+# plt.plot(np.linspace(0, 1, 1E3), OCP_cathode(np.linspace(0, 1, 1E3)), color="C0")
+# plt.plot(np.linspace(0, 1, 1E3), OCP_anode(np.linspace(0, 1, 1E3)), color="C1")
+# plt.plot(
+#     np.array([c_s_p_nd(solution.t[-1], x=1), c_s_n_nd(solution.t[-1], x=0)]),
+#     np.array([
+#         OCP_cathode(c_s_p_nd(solution.t[-1], x=1)),
+#         OCP_anode(c_s_n_nd(solution.t[-1], x=0))
+#     ]), 'ko'
+# )
+# plt.plot(
+#     np.array([c_s_p_nd2(solution2.t[-1], x=1), c_s_n_nd2(solution2.t[-1], x=0)]),
+#     np.array([
+#         OCP_cathode(c_s_p_nd2(solution2.t[-1], x=1)),
+#         OCP_anode(c_s_n_nd2(solution2.t[-1], x=0))
+#     ]), 'kx'
+# )
+# plt.xlabel("SoC")
+# plt.ylabel("OCP [V]")
+# plt.legend(("positive", "negative"))
 
 plt.figure(6)
 # plt.plot(solution.t, Ueq(solution.t), label="OCV")
