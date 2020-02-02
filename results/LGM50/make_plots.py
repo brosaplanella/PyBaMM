@@ -1,14 +1,15 @@
 import pybamm
 import numpy as np
+from scipy import signal
 import pandas as pd
 import matplotlib.pyplot as plt
 
 plt.rcParams.update({'font.size': 8})
 
 
-# Figure 3
+# Figure 4 - Particle size distribution
 
-fig3, axes3 = plt.subplots(1, 3, num=3, figsize=(6, 2))
+fig4, axes4 = plt.subplots(1, 3, num=4, figsize=(6, 2))
 particle_distribution_graphite = pd.read_csv(
     pybamm.root_dir() + "/results/LGM50/data/particle_distribution_graphite.csv"
 )
@@ -33,71 +34,144 @@ data_NMC = []
 for v in particle_distribution_NMC.to_numpy():
     data_NMC = np.append(data_NMC, np.full(int(v[1]), v[0]))
 
-axes3[0].hist(data_NMC, bins=np.arange(0, 15))
-axes3[0].set_xlim(0, 14)
-axes3[0].set_xlabel("Particle radius ($\mu$m)")
-axes3[0].set_ylabel("Count")
-axes3[0].set_title("Cathode: NMC")
+axes4[0].hist(data_NMC, bins=np.arange(0, 15))
+axes4[0].set_xlim(0, 14)
+axes4[0].set_xlabel("Particle radius ($\mu$m)")
+axes4[0].set_ylabel("Count")
+axes4[0].set_title("Positive elect.: NMC")
 
-axes3[1].hist(data_graphite, bins=np.arange(0, 13))
-axes3[1].set_xlim(0, 12)
-axes3[1].set_xlabel("Particle radius ($\mu$m)")
-axes3[1].set_ylabel("Count")
-axes3[1].set_title("Anode: graphite")
+axes4[1].hist(data_graphite, bins=np.arange(0, 13))
+axes4[1].set_xlim(0, 12)
+axes4[1].set_xlabel("Particle radius ($\mu$m)")
+axes4[1].set_ylabel("Count")
+axes4[1].set_title("Negative elect.: graphite")
 
-axes3[2].hist(data_silicon, bins=np.arange(0, 4.5, 0.5))
-axes3[2].set_xlim(0, 4)
-axes3[2].set_xlabel("Particle radius ($\mu$m)")
-axes3[2].set_ylabel("Count")
-axes3[2].set_title("Anode: silicon")
-
-plt.tight_layout()
-
-plt.savefig(
-    pybamm.root_dir() + "/results/LGM50/figures/fig3.png",
-    dpi=300
-)
-
-
-# Figure 5
-cathode_0pt02C_OCP = pd.read_csv(
-    pybamm.root_dir() + "/results/LGM50/data/cathode_0pt02C_OCP.csv"
-)
-anode_0pt02C_OCP = pd.read_csv(
-    pybamm.root_dir() + "/results/LGM50/data/anode_0pt02C_OCP.csv"
-)
-
-A_coin_cathode = np.pi / 4 * 1.48 ** 2  # in cm^2
-A_coin_anode = np.pi / 4 * 1.5 ** 2     # in cm^2
-
-fig5, axes5 = plt.subplots(1, 2, num=5, figsize=(6, 2.5))
-axes5[0].plot(
-    cathode_0pt02C_OCP.to_numpy()[:, 0] / A_coin_cathode,
-    cathode_0pt02C_OCP.to_numpy()[:, 4],
-    color="blue"
-)
-axes5[0].set_xlabel("Capacity (mA h $\mathrm{cm}^{-2}$)")
-axes5[0].set_ylabel("Potential (V)")
-axes5[0].set_title("Cathode")
-
-axes5[1].plot(
-    -anode_0pt02C_OCP.to_numpy()[:, 0] / A_coin_anode,
-    anode_0pt02C_OCP.to_numpy()[:, 3],
-    color="red"
-)
-axes5[1].set_xlabel("Capacity (mA h $\mathrm{cm}^{-2}$)")
-axes5[1].set_ylabel("Potential (V)")
-axes5[1].set_title("Anode")
+axes4[2].hist(data_silicon, bins=np.arange(0, 4.5, 0.5))
+axes4[2].set_xlim(0, 4)
+axes4[2].set_xlabel("Particle radius ($\mu$m)")
+axes4[2].set_ylabel("Count")
+axes4[2].set_title("Negative elect.: silicon")
 
 plt.tight_layout()
 
 plt.savefig(
-    pybamm.root_dir() + "/results/LGM50/figures/fig5.png",
+    pybamm.root_dir() + "/results/LGM50/figures/fig4.png",
     dpi=300
 )
 
+# Figure 8 - Sketch pseudo vs true OCV
+capacity = np.linspace(0, 1, 100)
+capacity_red = np.linspace(0.5, 3.5, 4)
+a = -0.25
 
-# Figure 7
+
+plt.figure(num=8, figsize=(6, 4))
+
+for i in range(-1,4):
+    plt.plot(
+        capacity + 0.5 + i, a * (capacity + 0.5 + i) + 0.5 - np.sqrt(capacity) - 0.25,
+        color="black", linestyle="dashed"
+    )
+    plt.plot(
+        capacity + 0.5 + i, a * (capacity + 0.5 + i) + 1.5 + np.sqrt(1 - capacity) + 0.25,
+        color="black", linestyle="dashed"
+    )
+
+for i in range(0,4):
+    plt.plot(
+        (0.5 + i) * np.array([1, 1]), a * (0.5 + i) + np.array([0.5, -0.75]),
+        color="black"
+    )
+    plt.plot(
+        (0.5 + i) * np.array([1, 1]), a * (0.5 + i) + np.array([1.5, 2.75]),
+        color="black"
+    )
+
+plt.plot(
+    4 * capacity, a * 4 * capacity + 2, color="blue", label="delithiation pseudo"
+)
+plt.plot(
+    4 * capacity, a * 4 * capacity + 0, color="red", label="lithiation pseudo"
+)
+plt.plot(
+    capacity_red, a * capacity_red + 1.5, 
+    color="blue", marker="x", linestyle="None",
+    label="delithiation true"
+)
+plt.plot(
+    capacity_red, a * capacity_red + 0.5, 
+    color="red", marker="x", linestyle="None",
+    label="lithiation true"
+)
+
+plt.xlabel("Capacity")
+plt.ylabel("Electrode potential")
+plt.xlim([0, 4])
+plt.xticks([])
+plt.yticks([])
+plt.legend()
+
+plt.tight_layout()
+
+plt.savefig(
+    pybamm.root_dir() + "/results/LGM50/figures/fig8.png",
+    dpi=300
+)
+
+# Figure 9 - Pseudo-OCV vs true OCV
+ElCell_OCP = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/ElCell_OCP.csv"
+)
+ElCell_pseudo = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/ElCell_pseudo.csv"
+)
+
+fig9, axes9 = plt.subplots(1, 2, num=9, figsize=(6, 2.5))
+axes9[0].plot(
+    ElCell_OCP.to_numpy()[:, 0],
+    ElCell_OCP.to_numpy()[:, 1],
+    color="blue",
+    linewidth=1,
+    label="true OCV"
+)
+axes9[0].plot(
+    ElCell_pseudo.to_numpy()[:, 0] - 0.0556,
+    ElCell_pseudo.to_numpy()[:, 1],
+    color="red",
+    linewidth=1,
+    label="pseudo OCV"
+)
+axes9[0].set_xlabel("Capacity (mAh $\mathrm{cm}^{-2}$)")
+axes9[0].set_ylabel("Potential (V)")
+axes9[0].set_title("Positive electrode")
+
+axes9[1].plot(
+    ElCell_OCP.to_numpy()[:, 0],
+    ElCell_OCP.to_numpy()[:, 2],
+    color="blue",
+    linewidth=1,
+    label="true OCV"
+)
+axes9[1].plot(
+    ElCell_pseudo.to_numpy()[:, 0] + 0.1942,
+    ElCell_pseudo.to_numpy()[:, 2],
+    color="red",
+    linewidth=1,
+    label="pseudo OCV"
+)
+axes9[1].set_xlabel("Capacity (mAh $\mathrm{cm}^{-2}$)")
+axes9[1].set_ylabel("Potential (V)")
+axes9[1].set_title("Negative electrode")
+axes9[1].legend()
+
+plt.tight_layout()
+
+plt.savefig(
+    pybamm.root_dir() + "/results/LGM50/figures/fig9.png",
+    dpi=300
+)
+
+# Figure 10 - dQ/dV plots
 cathode_dQdE_lithiation = pd.read_csv(
     pybamm.root_dir() + "/results/LGM50/data/cathode_dQdE_lithiation.csv"
 )
@@ -125,22 +199,22 @@ anode_dQdE_pseudo_delithiation = pd.read_csv(
 
 
 
-fig7, axes7 = plt.subplots(1, 2, num=7, figsize=(6, 2.5))
-axes7[0].plot(
+fig10, axes10 = plt.subplots(1, 2, num=10, figsize=(6, 2.5))
+axes10[0].plot(
     cathode_dQdE_delithiation.to_numpy()[:, 0],
     cathode_dQdE_delithiation.to_numpy()[:, 1],
     color="blue",
     linewidth=1,
     label="delithiation true"
 )
-axes7[0].plot(
+axes10[0].plot(
     cathode_dQdE_lithiation.to_numpy()[:, 0],
     cathode_dQdE_lithiation.to_numpy()[:, 1],
     color="red",
     linewidth=1,
     label="lithiation true"
 )
-axes7[0].plot(
+axes10[0].plot(
     cathode_dQdE_pseudo_delithiation.to_numpy()[:, 0],
     cathode_dQdE_pseudo_delithiation.to_numpy()[:, 1],
     color="blue",
@@ -148,7 +222,7 @@ axes7[0].plot(
     linewidth=1,
     label="delithiation pseudo"
 )
-axes7[0].plot(
+axes10[0].plot(
     cathode_dQdE_pseudo_lithiation.to_numpy()[:, 0],
     cathode_dQdE_pseudo_lithiation.to_numpy()[:, 1],
     color="red",
@@ -156,27 +230,27 @@ axes7[0].plot(
     linewidth=1,
     label="lithiation pseudo"
 )
-axes7[0].set_xlim(3.5, 4.3)
-axes7[0].set_xlabel("Potential (V)")
-axes7[0].set_ylabel("dQ/dE (mAh/V)")
-axes7[0].set_title("Cathode")
-# axes7[0].legend()
+axes10[0].set_xlim(3.5, 4.3)
+axes10[0].set_xlabel("Potential (V)")
+axes10[0].set_ylabel("dQ/dE (mAh/V)")
+axes10[0].set_title("Positive electrode")
+# axes10[0].legend()
 
-axes7[1].plot(
+axes10[1].plot(
     anode_dQdE_delithiation.to_numpy()[:, 0],
     anode_dQdE_delithiation.to_numpy()[:, 1],
     color="blue",
     linewidth=1,
     label="delithiation true"
 )
-axes7[1].plot(
+axes10[1].plot(
     anode_dQdE_lithiation.to_numpy()[:, 0],
     anode_dQdE_lithiation.to_numpy()[:, 1],
     color="red",
     linewidth=1,
     label="lithiation true"
 )
-axes7[1].plot(
+axes10[1].plot(
     anode_dQdE_pseudo_delithiation.to_numpy()[:, 0],
     anode_dQdE_pseudo_delithiation.to_numpy()[:, 1],
     color="blue",
@@ -184,7 +258,7 @@ axes7[1].plot(
     linewidth=1,
     label="delithiation pseudo"
 )
-axes7[1].plot(
+axes10[1].plot(
     anode_dQdE_pseudo_lithiation.to_numpy()[:, 0],
     anode_dQdE_pseudo_lithiation.to_numpy()[:, 1],
     color="red",
@@ -192,21 +266,102 @@ axes7[1].plot(
     linewidth=1,
     label="lithiation pseudo"
 )
-axes7[1].set_xlim(0.05, 0.4)
-axes7[1].set_xlabel("Potential (V)")
-axes7[1].set_ylabel("dQ/dE (mAh/V)")
-axes7[1].set_title("Anode")
-axes7[1].legend()
+axes10[1].set_xlim(0.05, 0.25)
+axes10[1].set_xlabel("Potential (V)")
+axes10[1].set_ylabel("dQ/dE (mAh/V)")
+axes10[1].set_title("Negative electrode")
+axes10[1].legend()
 
 plt.tight_layout()
 
 plt.savefig(
-    pybamm.root_dir() + "/results/LGM50/figures/fig7.png",
+    pybamm.root_dir() + "/results/LGM50/figures/fig10.png",
+    dpi=300
+)
+
+# Figure 11 - 2-electrode vs 3-electrode OCV
+anode_OCP_half = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/anode_OCP_half.csv"
+)
+cathode_OCP_half = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/cathode_OCP_half.csv"
+)
+
+fig11, axes11 = plt.subplots(1, 2, num=11, figsize=(6, 3))
+axes11[0].plot(
+    ElCell_OCP.to_numpy()[:, 0],
+    ElCell_OCP.to_numpy()[:, 1],
+    color="blue",
+    linewidth=1,
+    label="3-electrode"
+)
+axes11[0].plot(
+    cathode_OCP_half.to_numpy()[:, 0] - 0.3397,
+    cathode_OCP_half.to_numpy()[:, 1],
+    color="red",
+    linewidth=1,
+    label="2-electrode"
+)
+axes11[0].set_xlabel("Capacity (mAh $\mathrm{cm}^{-2}$)")
+axes11[0].set_ylabel("Potential (V)")
+axes11[0].set_xlim((-1, 5))
+axes11[0].set_title("Positive electrode")
+
+a_cat = -0.1470
+b_cat = 0.9072
+
+def C2S_cathode(x):
+    return a_cat * x + b_cat
+
+
+def S2C_cathode(x):
+    return (x - b_cat) / a_cat
+
+secaxcat = axes11[0].secondary_xaxis('top', functions=(C2S_cathode, S2C_cathode))
+secaxcat.set_xlabel("Stoichiometry")
+
+
+axes11[1].plot(
+    ElCell_OCP.to_numpy()[:, 0],
+    ElCell_OCP.to_numpy()[:, 2],
+    color="blue",
+    linewidth=1,
+    label="3-electrode"
+)
+axes11[1].plot(
+    anode_OCP_half.to_numpy()[:, 0] - 0.1391,
+    anode_OCP_half.to_numpy()[:, 1],
+    color="red",
+    linewidth=1,
+    label="2-electrode"
+)
+axes11[1].set_xlabel("Capacity (mAh $\mathrm{cm}^{-2}$)")
+axes11[1].set_ylabel("Potential (V)")
+axes11[1].set_title("Negative electrode")
+axes11[1].legend()
+
+a_an = 0.1974
+b_an = 0.0279
+
+def C2S_anode(x):
+    return a_an* x + b_an
+
+
+def S2C_anode(x):
+    return (x - b_an) / a_an
+
+secaxcat = axes11[1].secondary_xaxis('top', functions=(C2S_anode, S2C_anode))
+secaxcat.set_xlabel("Stoichiometry")
+
+plt.tight_layout()
+
+plt.savefig(
+    pybamm.root_dir() + "/results/LGM50/figures/fig11.png",
     dpi=300
 )
 
 
-# Figure 8
+# Figure 12 - Diffusion coefficients & GITT data
 cathode_GITT_lithiation = pd.read_csv(
     pybamm.root_dir() + "/results/LGM50/data/cathode_GITT_lithiation.csv"
 )
@@ -232,197 +387,105 @@ anode_diffusivity_delithiation = pd.read_csv(
     pybamm.root_dir() + "/results/LGM50/data/anode_diffusivity_delithiation.csv"
 )
 
-cathode_max_cap = np.max(cathode_GITT_delithiation.to_numpy()[:, 0] / A_coin_cathode)
+D_cathode = np.concatenate(
+    (cathode_diffusivity_lithiation.to_numpy()[:, 1],
+    cathode_diffusivity_delithiation.to_numpy()[:, 1]),
+    axis=0
+)
+D_anode = np.concatenate(
+    (anode_diffusivity_lithiation.to_numpy()[:, 1],
+    anode_diffusivity_delithiation.to_numpy()[:, 1]),
+    axis=0
+)
 
-fig8, axes8 = plt.subplots(2, 2, num=8, figsize=(6, 4.5))
-axes8[0, 0].semilogy(
-    cathode_diffusivity_delithiation.to_numpy()[:, 0] * cathode_max_cap,
-    10 ** cathode_diffusivity_delithiation.to_numpy()[:, 1],
+
+print("Average diffusion cathode: ", np.average(D_cathode), " +- ", np.std(D_cathode) )
+print("Average diffusion anode: ", np.average(D_anode), " +- ", np.std(D_anode) )
+
+fig12, axes12 = plt.subplots(2, 2, num=12, figsize=(6, 4.5))
+axes12[0, 0].semilogy(
+    cathode_diffusivity_delithiation.to_numpy()[:, 0],
+    cathode_diffusivity_delithiation.to_numpy()[:, 1],
     color="blue", linestyle="None", marker="o", markersize=3, label="delithiation"
 )
-axes8[0, 0].semilogy(
-    cathode_diffusivity_lithiation.to_numpy()[:, 0] * cathode_max_cap,
-    10 ** cathode_diffusivity_lithiation.to_numpy()[:, 1],
+axes12[0, 0].semilogy(
+    cathode_diffusivity_lithiation.to_numpy()[:, 0],
+    cathode_diffusivity_lithiation.to_numpy()[:, 1],
     color="red", linestyle="None", marker="o", markersize=3, label="lithiation"
 )
-axes8[0, 0].set_xlim(left = -1)
-axes8[0, 0].set_xlabel("Capacity (mA h $\mathrm{cm}^{-2}$)")
-axes8[0, 0].set_ylabel("Diffusivity ($\mathrm{cm}^2 \mathrm{s}^{-1}$)")
-axes8[0, 0].set_title("Cathode")
-# axes8[0, 0].legend(loc="upper left")
+axes12[0, 0].set_xlim(left = -1)
+axes12[0, 0].set_xlabel("Capacity (mAh $\mathrm{cm}^{-2}$)")
+axes12[0, 0].set_ylabel("Diffusivity ($\mathrm{cm}^2 \mathrm{s}^{-1}$)")
+axes12[0, 0].set_title("(a) Positive electrode")
+# axes12[0, 0].legend(loc="upper left")
 
-axes8[1, 0].plot(
-    cathode_GITT_delithiation.to_numpy()[:, 0] / A_coin_cathode,
+axes12[1, 0].plot(
+    cathode_GITT_delithiation.to_numpy()[:, 0],
     cathode_GITT_delithiation.to_numpy()[:, 1],
     color="blue",
     # linewidth=0.5,
     label="delithiation"
 )
-axes8[1, 0].plot(
-    cathode_GITT_lithiation.to_numpy()[:, 0] / A_coin_cathode,
+axes12[1, 0].plot(
+    cathode_GITT_lithiation.to_numpy()[:, 0],
     cathode_GITT_lithiation.to_numpy()[:, 1],
     color="red",
     # linewidth=0.5,
     label="lithiation"
 )
-axes8[1, 0].set_xlim(left = -1)
-axes8[1, 0].set_xlabel("Capacity (mA h $\mathrm{cm}^{-2}$)")
-axes8[1, 0].set_ylabel("Potential (V)")
-axes8[1, 0].set_title("Cathode")
-# axes8[0, 1].legend(loc="upper left")
+axes12[1, 0].set_xlim(left = -1)
+axes12[1, 0].set_xlabel("Capacity (mAh $\mathrm{cm}^{-2}$)")
+axes12[1, 0].set_ylabel("Potential (V)")
+axes12[1, 0].set_title("(c) Positive electrode")
+# axes12[0, 1].legend(loc="upper left")
 
-axes8[0, 1].semilogy(
-    np.abs(anode_diffusivity_delithiation.to_numpy()[:, 0]),
+axes12[0, 1].semilogy(
+    anode_diffusivity_delithiation.to_numpy()[:, 0],
     anode_diffusivity_delithiation.to_numpy()[:, 1],
-    color="blue", linestyle="solid", marker="o", markersize=3, label="delithiation"
+    color="blue", linestyle="None", marker="o", markersize=3, label="delithiation"
 )
-axes8[0, 1].semilogy(
-    np.abs(anode_diffusivity_lithiation.to_numpy()[:, 0]),
+axes12[0, 1].semilogy(
+    anode_diffusivity_lithiation.to_numpy()[:, 0],
     anode_diffusivity_lithiation.to_numpy()[:, 1],
-    color="red", linestyle="solid", marker="o", markersize=3, label="lithiation"
+    color="red", linestyle="None", marker="o", markersize=3, label="lithiation"
 )
-# axes8[0, 1].set_xlim(0, 1)
-axes8[0, 1].set_xlabel("Capacity (mA h $\mathrm{cm}^{-2}$)")
-axes8[0, 1].set_ylabel("Diffusivity ($\mathrm{cm}^2 \mathrm{s}^{-1}$)")
-axes8[0, 1].set_title("Anode")
-# axes8[1, 0].legend(loc="upper left")
+axes12[0, 1].set_ylim(bottom=1E-18)
+axes12[0, 1].set_xlabel("Capacity (mAh $\mathrm{cm}^{-2}$)")
+axes12[0, 1].set_ylabel("Diffusivity ($\mathrm{cm}^2 \mathrm{s}^{-1}$)")
+axes12[0, 1].set_title("(b) Negative electrode")
+# axes12[1, 0].legend(loc="upper left")
 
-axes8[1, 1].plot(
+axes12[1, 1].plot(
     np.abs(anode_GITT_delithiation.to_numpy()[:, 0]),
     anode_GITT_delithiation.to_numpy()[:, 1],
     color="blue",
     # linewidth=0.5,
     label="delithiation"
 )
-axes8[1, 1].plot(
+axes12[1, 1].plot(
     np.abs(anode_GITT_lithiation.to_numpy()[:, 0]),
     anode_GITT_lithiation.to_numpy()[:, 1],
     color="red",
     # linewidth=0.5,
     label="lithiation"
 )
-axes8[1, 1].set_xlabel("Capacity (mA h $\mathrm{cm}^{-2}$)")
-axes8[1, 1].set_ylabel("Potential (V)")
-axes8[1, 1].set_title("Anode")
-axes8[1, 1].legend(loc="upper right")
+axes12[1, 1].set_xlabel("Capacity (mAh $\mathrm{cm}^{-2}$)")
+axes12[1, 1].set_ylabel("Potential (V)")
+axes12[1, 1].set_title("(d) Negative electrode")
+axes12[1, 1].legend(loc="upper right")
 
 plt.tight_layout()
 
 plt.savefig(
-    pybamm.root_dir() + "/results/LGM50/figures/fig8.png",
+    pybamm.root_dir() + "/results/LGM50/figures/fig12.png",
     dpi=300
 )
 
 
-# Figure 10
-# EIS_cathode = np.arange(1, 21)
-EIS_cathode = [1, 5, 10, 15, 17, 20]
-EIS_cathode_file = "/results/LGM50/data/EIS/Cathode02_discharge_03_PEIS_C09_{}_"
-m = int(np.ceil(np.sqrt(np.size(EIS_cathode))))
-n = int(np.ceil(np.size(EIS_cathode) / m))
-
-fig101, axes101 = plt.subplots(n, m, num=101, figsize=(6, 3.5))
-for j in range(0, n):
-    for i in range(0, m):
-        k = j * m + i
-        if k > np.size(EIS_cathode):
-            break
-        EIS_raw = pd.read_csv(
-            pybamm.root_dir() + EIS_cathode_file.format(EIS_cathode[k]) + "raw.csv",
-            sep="\t",
-            skiprows=6
-        ).to_numpy()
-        EIS_fit = pd.read_csv(
-            pybamm.root_dir() + EIS_cathode_file.format(EIS_cathode[k]) + "fit.csv",
-            sep="\t",
-            skiprows=6
-        ).to_numpy()
-        axes101[j, i].plot(EIS_fit[:, 2], -EIS_fit[:, 3], color="red", zorder=1)
-        axes101[j, i].scatter(EIS_raw[:, 2], -EIS_raw[:, 3], c="black", s=1, zorder=2)
-        axes101[j, i].set_xlabel("Re(Z) ($\Omega$)")
-        axes101[j, i].set_ylabel("-Im(Z) ($\Omega$)")
-        axes101[j, i].set_xlim(left=0)
-        axes101[j, i].set_ylim(bottom=0)
-        axes101[j, i].set_title("Cathode {}%".format(EIS_cathode[k] * 5))
-plt.tight_layout()
-
-plt.savefig(
-    pybamm.root_dir() + "/results/LGM50/figures/fig10a.png",
-    dpi=300
+# Figure 14 - EIS at different temperatures
+cathode_EIS_25degC = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/cathode_EIS_25degC.csv"
 )
-
-
-# EIS_anode = np.arange(1, 21)
-EIS_anode = [1, 6, 11, 16, 18, 20]
-EIS_anode_file = "/results/LGM50/data/EIS/Anode02_EIS_charge_02_PEIS_C16_{}_"
-m = int(np.ceil(np.sqrt(np.size(EIS_anode))))
-n = int(np.ceil(np.size(EIS_anode) / m))
-
-fig102, axes102 = plt.subplots(n, m, num=102, figsize=(6, 3.5))  # figsize=(12.8, 9.6)
-for j in range(0, n):
-    for i in range(0, m):
-        k = j * m + i
-        if k > np.size(EIS_anode):
-            break
-        EIS_raw = pd.read_csv(
-            pybamm.root_dir() + EIS_anode_file.format(EIS_anode[k]) + "raw.csv",
-            sep="\t",
-            skiprows=6
-        ).to_numpy()
-        EIS_fit = pd.read_csv(
-            pybamm.root_dir() + EIS_anode_file.format(EIS_anode[k]) + "fit.csv",
-            sep="\t",
-            skiprows=6
-        ).to_numpy()
-        axes102[j, i].plot(EIS_fit[:, 2], -EIS_fit[:, 3], color="red", zorder=1)
-        axes102[j, i].scatter(EIS_raw[:, 2], -EIS_raw[:, 3], c="black", s=1, zorder=2)
-        axes102[j, i].set_xlabel("Re(Z) ($\Omega$)")
-        axes102[j, i].set_ylabel("-Im(Z) ($\Omega$)")
-        axes102[j, i].set_xlim(left=0)
-        axes102[j, i].set_ylim(bottom=0)
-        axes102[j, i].set_title("Anode {}%".format(105 - EIS_anode[k] * 5))
-plt.tight_layout()
-
-plt.savefig(
-    pybamm.root_dir() + "/results/LGM50/figures/fig10b.png",
-    dpi=300
-)
-
-# Figure 11
-cathode_exchange_current = pd.read_csv(
-    pybamm.root_dir() + "/results/LGM50/data/cathode_exchange_current.csv"
-)
-anode_exchange_current = pd.read_csv(
-    pybamm.root_dir() + "/results/LGM50/data/anode_exchange_current.csv"
-)
-
-fig11, axes11 = plt.subplots(1, 2, num=11, figsize=(6, 2.5))
-axes11[0].scatter(
-    cathode_exchange_current.to_numpy()[:, 0],
-    cathode_exchange_current.to_numpy()[:, 1] * 10,
-    c="black", s=5
-)
-axes11[0].set_xlabel("State of Charge")
-axes11[0].set_ylabel("Exchange current (A $\mathrm{m}^{-2}$)")
-axes11[0].set_title("Cathode")
-
-axes11[1].scatter(
-    anode_exchange_current.to_numpy()[:, 0],
-    anode_exchange_current.to_numpy()[:, 1] * 10,
-    c="black", s=5
-)
-axes11[1].set_xlabel("State of Charge")
-axes11[1].set_ylabel("Exchange current (A $\mathrm{m}^{-2}$)")
-axes11[1].set_title("Anode")
-
-plt.tight_layout()
-
-plt.savefig(
-    pybamm.root_dir() + "/results/LGM50/figures/fig11.png",
-    dpi=300
-)
-
-# Figure 12
 cathode_EIS_30degC = pd.read_csv(
     pybamm.root_dir() + "/results/LGM50/data/cathode_EIS_30degC.csv"
 )
@@ -434,6 +497,9 @@ cathode_EIS_50degC = pd.read_csv(
 )
 cathode_EIS_60degC = pd.read_csv(
     pybamm.root_dir() + "/results/LGM50/data/cathode_EIS_60degC.csv"
+)
+anode_EIS_25degC = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/anode_EIS_25degC.csv"
 )
 anode_EIS_30degC = pd.read_csv(
     pybamm.root_dir() + "/results/LGM50/data/anode_EIS_30degC.csv"
@@ -448,154 +514,184 @@ anode_EIS_60degC = pd.read_csv(
     pybamm.root_dir() + "/results/LGM50/data/anode_EIS_60degC.csv"
 )
 
-fig12, axes12 = plt.subplots(1, 2, num=12, figsize=(6, 2.5))
-axes12[0].scatter(
+fig14, axes14 = plt.subplots(1, 2, num=14, figsize=(6, 2.5))
+# axes14[0].scatter(
+#     cathode_EIS_25degC.to_numpy()[:, 0],
+#     cathode_EIS_25degC.to_numpy()[:, 1],
+#     c="orange", s=5, label="25°C"
+# )
+axes14[0].scatter(
     cathode_EIS_30degC.to_numpy()[:, 0],
     cathode_EIS_30degC.to_numpy()[:, 1],
     c="black", s=5, label="30°C"
 )
-axes12[0].scatter(
+axes14[0].scatter(
     cathode_EIS_40degC.to_numpy()[:, 0],
     cathode_EIS_40degC.to_numpy()[:, 1],
     c="red", s=5, label="40°C"
 )
-axes12[0].scatter(
+axes14[0].scatter(
     cathode_EIS_50degC.to_numpy()[:, 0],
     cathode_EIS_50degC.to_numpy()[:, 1],
     c="green", s=5, label="50°C"
 )
-axes12[0].scatter(
+axes14[0].scatter(
     cathode_EIS_60degC.to_numpy()[:, 0],
     cathode_EIS_60degC.to_numpy()[:, 1],
     c="blue", s=5, label="60°C"
 )
-axes12[0].set_xlabel("Re(Z) ($\Omega$)")
-axes12[0].set_ylabel("-Im(Z) ($\Omega$)")
-axes12[0].set_title("Cathode")
-# axes12[0].legend()
+axes14[0].set_xlabel("Re(Z) ($\Omega$)")
+axes14[0].set_ylabel("-Im(Z) ($\Omega$)")
+axes14[0].set_title("Positive electrode")
+# axes14[0].legend()
 
-axes12[1].scatter(
+# axes14[1].scatter(
+#     anode_EIS_25degC.to_numpy()[:, 0],
+#     anode_EIS_25degC.to_numpy()[:, 1],
+#     c="orange", s=5, label="25°C"
+# )
+axes14[1].scatter(
     anode_EIS_30degC.to_numpy()[:, 0],
     anode_EIS_30degC.to_numpy()[:, 1],
     c="black", s=5, label="30°C"
 )
-axes12[1].scatter(
+axes14[1].scatter(
     anode_EIS_40degC.to_numpy()[:, 0],
     anode_EIS_40degC.to_numpy()[:, 1],
     c="red", s=5, label="40°C"
 )
-axes12[1].scatter(
+axes14[1].scatter(
     anode_EIS_50degC.to_numpy()[:, 0],
     anode_EIS_50degC.to_numpy()[:, 1],
     c="green", s=5, label="50°C"
 )
-axes12[1].scatter(
+axes14[1].scatter(
     anode_EIS_60degC.to_numpy()[:, 0],
     anode_EIS_60degC.to_numpy()[:, 1],
     c="blue", s=5, label="60°C"
 )
-axes12[1].set_xlabel("Re(Z) ($\Omega$)")
-axes12[1].set_ylabel("-Im(Z) ($\Omega$)")
-axes12[1].set_title("Anode")
-axes12[1].legend()
+axes14[1].set_xlabel("Re(Z) ($\Omega$)")
+axes14[1].set_ylabel("-Im(Z) ($\Omega$)")
+axes14[1].set_title("Negative electrode")
+axes14[1].legend()
 
 plt.tight_layout()
-
-plt.savefig(
-    pybamm.root_dir() + "/results/LGM50/figures/fig12.png",
-    dpi=300
-)
-
-# Figure 13
-exchange_current_activation_energy = pd.read_csv(
-    pybamm.root_dir() + "/results/LGM50/data/exchange_current_activation_energy.csv"
-)
-fit_cathode = np.polyfit(
-    1000. / exchange_current_activation_energy.to_numpy()[:, 0],
-    np.log(exchange_current_activation_energy.to_numpy()[:, 1] * 10),
-    deg=1
-)
-fit_anode = np.polyfit(
-    1000. / exchange_current_activation_energy.to_numpy()[:, 0],
-    np.log(exchange_current_activation_energy.to_numpy()[:, 2] * 10),
-    deg=1
-)
-
-plt.figure(13)
-plt.plot(
-    1000. / exchange_current_activation_energy.to_numpy()[:, 0],
-    np.log(exchange_current_activation_energy.to_numpy()[:, 1] * 10),
-    color="black", marker='o', markersize=5, linestyle="None"
-)
-plt.plot(
-    1000. / exchange_current_activation_energy.to_numpy()[:, 0],
-    np.log(exchange_current_activation_energy.to_numpy()[:, 2] * 10),
-    color="black", marker='o', markersize=5, linestyle="None"
-)
-plt.plot(
-    1000. / exchange_current_activation_energy.to_numpy()[:, 0],
-    np.polyval(
-        fit_cathode,
-        1000. / exchange_current_activation_energy.to_numpy()[:, 0]
-    ),
-    color="blue",
-    label="cathode"
-)
-plt.plot(
-    1000. / exchange_current_activation_energy.to_numpy()[:, 0],
-    np.polyval(
-        fit_anode,
-        1000. / exchange_current_activation_energy.to_numpy()[:, 0]
-    ),
-    color="red",
-    label="anode"
-)
-plt.xlabel("1000/T ($\mathrm{K}^{-1})$")
-plt.ylabel("$\ln(j_0)$")
-plt.legend()
-
-plt.savefig(
-    pybamm.root_dir() + "/results/LGM50/figures/fig13.png",
-    dpi=300
-)
-
-print("Cathode: ", fit_cathode[0] * 8.314 * 1000)
-print("Anode: ", fit_anode[0] * 8.314 * 1000)
-
-# Figure 14
-swagelok_GITT = pd.read_csv(
-    pybamm.root_dir() + "/results/LGM50/data/swagelok_GITT.csv"
-)
-
-A_swagelok = np.pi / 4 * 1.2 ** 2     # in cm^2
-
-plt.figure(14)
-plt.plot(
-    swagelok_GITT.to_numpy()[:, 0] / A_swagelok,
-    swagelok_GITT.to_numpy()[:, 3],
-    color="black",
-    label="full"
-)
-plt.plot(
-    swagelok_GITT.to_numpy()[:, 0] / A_swagelok,
-    swagelok_GITT.to_numpy()[:, 4],
-    color="blue",
-    label="cathode"
-)
-plt.plot(
-    swagelok_GITT.to_numpy()[:, 0] / A_swagelok,
-    swagelok_GITT.to_numpy()[:, 5],
-    color="red",
-    label="anode"
-)
-plt.xlabel("Capacity (mA h $\mathrm{cm}^{-2}$)")
-plt.ylabel("Potential (V)")
-plt.title("Swagelok cell")
-plt.legend()
 
 plt.savefig(
     pybamm.root_dir() + "/results/LGM50/figures/fig14.png",
     dpi=300
 )
+
+# Figure 15 - Arrhenius plot
+arrhenius_Rct = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/arrhenius_Rct.csv"
+)
+
+# arrhenius_T = arrhenius_Rct.to_numpy()[1:, 0]
+# arrhenius_Rct_cathode = arrhenius_Rct.to_numpy()[1:, 1]
+# arrhenius_Rct_anode = arrhenius_Rct.to_numpy()[1:, 2]
+
+arrhenius_T = arrhenius_Rct.to_numpy()[:, 0]
+arrhenius_Rct_cathode = arrhenius_Rct.to_numpy()[:, 1]
+arrhenius_Rct_anode = arrhenius_Rct.to_numpy()[:, 2]
+
+R = 8.314
+F = 96485
+Sp = 4.9706E-3
+Sn = 5.7809E-3
+
+arrhenius_j0_cathode = R/(Sp * F) * np.divide(arrhenius_T, arrhenius_Rct_cathode)/10
+arrhenius_j0_anode = R/(Sn * F) * np.divide(arrhenius_T, arrhenius_Rct_anode)/10
+
+print(arrhenius_T)
+print(arrhenius_Rct_cathode)
+print(arrhenius_Rct_anode)
+
+fit_cathode = np.polyfit(
+    1. / arrhenius_T,
+    np.log(arrhenius_j0_cathode),
+    deg=1
+)
+fit_anode = np.polyfit(
+    1. / arrhenius_T,
+    np.log(arrhenius_j0_anode),
+    deg=1
+)
+
+plt.figure(num=15, figsize=(6, 4))
+plt.semilogy(
+    1. / arrhenius_T,
+    arrhenius_j0_cathode,
+    color="black", marker='o', markersize=5, linestyle="None",
+    label="positive electrode"
+)
+plt.semilogy(
+    1. / arrhenius_T,
+    arrhenius_j0_anode,
+    color="black", marker='x', markersize=5, linestyle="None",
+    label="negative electrode"
+)
+plt.semilogy(
+    1. / arrhenius_T,
+    np.exp(fit_cathode[0] / arrhenius_T + fit_cathode[1]),
+    color="blue",
+)
+plt.semilogy(
+    1. / arrhenius_T,
+    np.exp(fit_anode[0] / arrhenius_T + fit_anode[1]),
+    color="blue",
+)
+plt.xlabel("1/T ($\mathrm{K}^{-1})$")
+plt.ylabel("$j_0$ (mA $\mathrm{cm}^{-2}$)")
+plt.ylim((1E-2, 1))
+plt.legend()
+
+plt.tight_layout()
+
+plt.savefig(
+    pybamm.root_dir() + "/results/LGM50/figures/fig15.png",
+    dpi=300
+)
+
+print("Cathode: ", fit_cathode[0] * R)
+print("Anode: ", fit_anode[0] * R)
+
+# Figure S7 - EIS at room temperature
+cathode_Rct_RT = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/cathode_Rct_RT.csv"
+)
+anode_Rct_RT = pd.read_csv(
+    pybamm.root_dir() + "/results/LGM50/data/anode_Rct_RT.csv"
+)
+
+j0_cathode = R/(Sp * F) * 298.15 * np.divide(1, cathode_Rct_RT.to_numpy()[:,1])/10
+j0_anode = R/(Sn * F) * 298.15 * np.divide(1, anode_Rct_RT.to_numpy()[:,1])/10
+
+fig27, axes27 = plt.subplots(1, 2, num=27, figsize=(6, 2.5))
+axes27[0].scatter(
+    cathode_Rct_RT.to_numpy()[:,0],
+    j0_cathode,
+    c="black", s=5
+)
+axes27[0].set_xlabel("Capacity (mAh $\mathrm{cm}^{-2}$)")
+axes27[0].set_ylabel("$j_0$ (mA $\mathrm{cm}^{-2}$)")
+axes27[0].set_title("Positive electrode")
+
+axes27[1].scatter(
+    anode_Rct_RT.to_numpy()[:,0],
+    j0_anode,
+    c="black", s=5
+)
+axes27[1].set_xlabel("Capacity (mAh $\mathrm{cm}^{-2}$)")
+axes27[1].set_ylabel("$j_0$ (mA $\mathrm{cm}^{-2}$)")
+axes27[1].set_title("Negative electrode")
+
+plt.tight_layout()
+
+plt.savefig(
+    pybamm.root_dir() + "/results/LGM50/figures/figS7.png",
+    dpi=300
+)
+
 
 plt.show()

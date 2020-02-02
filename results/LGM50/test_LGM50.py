@@ -3,7 +3,9 @@ import numpy as np
 from scipy import interpolate
 import pandas as pd
 import matplotlib.pyplot as plt
-from autograd.extend import primitive, defvjp
+# from autograd.extend import primitive, defvjp
+
+plt.rcParams.update({'font.size': 8})
 
 pybamm.set_logging_level("INFO")
 
@@ -59,39 +61,23 @@ param = pybamm.ParameterValues(
 #     "Positive electrode OCP [V]": OCP_cathode,
 # })
 
+filename = "C2"
+
 data_experiments = pd.read_csv(
-    pybamm.root_dir() + "/results/LGM50/data/data15C_rest.csv"
+    pybamm.root_dir() + "/results/LGM50/data/data" + filename + "_rest.csv"
 ).to_numpy()
 
+cspmax = 50483 * 1.25  #1.25
+csnmax = 29583 * 1.12  #1.13
 
-# OLD PARAMETERISATION
-# cspmax = 38000 * 1.1
-# csnmax = 29000
-
-# cspmax = 29863 * 1.3
-# cspmax = 32349 * 1.2
-# csnmax = 29189
-
-param["Positive electrode conductivity [S.m-1]"] = 0.18 * 5
-
-param["Negative electrode porosity"] = 0.27
-param["Positive electrode porosity"] = 0.26
-
-# param["Negative electrode surface area density [m-1]"] = 419540
-# param["Positive electrode surface area density [m-1]"] = 377166
-# param["Initial concentration in negative electrode [mol.m-3]"] = 0.935 * csnmax
-# param["Initial concentration in positive electrode [mol.m-3]"] = 0.011 * cspmax
-
-cspmax = 44009 * 1.23
-csnmax = 29924 * 1.02
-
-param["Initial concentration in negative electrode [mol.m-3]"] = 0.899 * csnmax
-param["Initial concentration in positive electrode [mol.m-3]"] = 0.286 * cspmax
+param["Initial concentration in negative electrode [mol.m-3]"] = 0.90 * csnmax
+param["Initial concentration in positive electrode [mol.m-3]"] = 0.26 * cspmax
 param["Maximum concentration in negative electrode [mol.m-3]"] = csnmax
 param["Maximum concentration in positive electrode [mol.m-3]"] = cspmax
-param["Lower voltage cut-off [V]"] = 2.5
-param["Upper voltage cut-off [V]"] = 4.4
-param["Current function"] = pybamm.GetConstantCurrent(current=pybamm.Scalar(5 * 1.5))
+param["Negative electrode Bruggeman coefficient"] = 1.5
+param["Positive electrode Bruggeman coefficient"] = 1.5
+param["Separator Bruggeman coefficient"] = 1.5
+param["Current function"] = pybamm.GetConstantCurrent(current=pybamm.Scalar(5 * 0.5))
 
 param.process_model(model)
 param.process_geometry(geometry)
@@ -264,12 +250,44 @@ rmse = np.sqrt(np.mean(np.square(error)))
 print("RMSE: ", rmse)
 print("Peak error: ", np.max(error))
 
-plt.figure(10)
+fig10, axes10 = plt.subplots(1, 2, num=10, figsize=(6, 2.5))
+
+axes10[0].fill_between(
+    data_experiments[:, 0] / 3600,
+    data_experiments[:, 1] + data_experiments[:, 2],
+    data_experiments[:, 1] - data_experiments[:, 2],
+    color="#808080",
+    label="experiments"
+)
+axes10[0].plot(
+    np.array([data_experiments[0, 0] / 3600, 0]),
+    Ueq(solution.t[0]) * np.ones(2),
+    color="C1"
+)
+axes10[0].plot(time(solution.t), voltage(solution.t), color="C1", label="model")
+axes10[0].plot(time2(solution2.t), voltage2(solution2.t), color="C1")
+axes10[0].set_xlabel("t [h]")
+axes10[0].set_ylabel("Voltage [V]")
+axes10[0].legend()
+
+axes10[1].plot(data_experiments[60:-1, 0] / 3600, error)
+axes10[1].set_xlabel("t [h]")
+axes10[1].set_ylabel("Voltage error [V]")
+
+plt.tight_layout()
+
+plt.savefig(
+    pybamm.root_dir() + "/results/LGM50/figures/fig" + filename + ".png",
+    dpi=300
+)
+
+plt.figure(num=1, figsize=(6, 4))
 plt.plot(data_experiments[60:-1, 0] / 3600, error)
 plt.xlabel("t [h]")
 plt.ylabel("Voltage error [V]")
+plt.tight_layout()
 
-plt.figure(2)
+plt.figure(num=2, figsize=(6, 4))
 plt.fill_between(
     data_experiments[:, 0] / 3600,
     data_experiments[:, 1] + data_experiments[:, 2],
@@ -297,8 +315,9 @@ plt.plot(
 plt.xlabel("t [h]")
 plt.ylabel("Voltage [V]")
 plt.legend()
+plt.tight_layout()
 
-plt.figure(3)
+plt.figure(num=3, figsize=(6, 4))
 plt.plot(time(solution.t), c_s_p_nd(solution.t, x=1), color="C1", label="positive")
 plt.plot(time2(solution2.t), c_s_p_nd2(solution2.t, x=1), color="C1")
 plt.plot(time(solution.t), c_s_n_nd(solution.t, x=0), color="C0", label="negative")
@@ -307,8 +326,9 @@ plt.ylim((0, 1))
 plt.xlabel("t [h]")
 plt.ylabel("Surface concentration")
 plt.legend()
+plt.tight_layout()
 
-plt.figure(4)
+plt.figure(num=4, figsize=(6, 4))
 plt.plot(
     time(solution.t), phi_p(solution.t, x=1) - phi_e(solution.t, x=1),
     color="C1", label="positive"
@@ -326,6 +346,7 @@ plt.plot(
 plt.xlabel("t [h]")
 plt.ylabel("Potential [V]")
 plt.legend()
+plt.tight_layout()
 
 # plt.figure(5)
 # plt.plot(np.linspace(0, 1, 1E3), OCP_cathode(np.linspace(0, 1, 1E3)), color="C0")
@@ -348,16 +369,16 @@ plt.legend()
 # plt.ylabel("OCP [V]")
 # plt.legend(("positive", "negative"))
 
-plt.figure(6)
-# plt.plot(solution.t, Ueq(solution.t), label="OCV")
-plt.plot(solution.t, etar(solution.t), label="reaction op")
-# plt.plot(solution.t, etac(solution.t), label="concentration op")
-# plt.plot(solution.t, Dphis(solution.t), label="solid Ohmic")
-# plt.plot(solution.t, Dphie(solution.t), label="electrolyte Ohmic")
-# plt.plot(solution.t, etap(solution.t), label="positive overpotential")
-# plt.plot(solution.t, etan(solution.t), label="negative overpotential")
-plt.xlabel("t")
-plt.ylabel("Voltages [V]")
-plt.legend()
+# plt.figure(6)
+# # plt.plot(solution.t, Ueq(solution.t), label="OCV")
+# plt.plot(solution.t, etar(solution.t), label="reaction op")
+# # plt.plot(solution.t, etac(solution.t), label="concentration op")
+# # plt.plot(solution.t, Dphis(solution.t), label="solid Ohmic")
+# # plt.plot(solution.t, Dphie(solution.t), label="electrolyte Ohmic")
+# # plt.plot(solution.t, etap(solution.t), label="positive overpotential")
+# # plt.plot(solution.t, etan(solution.t), label="negative overpotential")
+# plt.xlabel("t")
+# plt.ylabel("Voltages [V]")
+# plt.legend()
 
 plt.show()
