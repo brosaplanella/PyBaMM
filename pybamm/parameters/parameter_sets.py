@@ -11,15 +11,12 @@ Marquis2019
     Chapman. "An asymptotic derivation of a single particle model with electrolyte."
     `arXiv preprint arXiv:1905.12553 <https://arxiv.org/abs/1905.12553>`_ (2019).
 
-<<<<<<< HEAD
 NCA_Kim2011
     Kim, G. H., Smith, K., Lee, K. J., Santhanagopalan, S., & Pesaran, A.
     (2011). Multi-domain modeling of lithium-ion batteries encompassing
     multi-physics in varied length scales. Journal of The Electrochemical
     Society, 158(8), A955-A969.
 
-=======
->>>>>>> #573 included Chen2020 as a PyBaMM parameter set
 Chen2020
     Chang-Hui Chen, Ferran Brosa Planella, Kieran O’Regan, Dominika Gastol, W. Dhammika Widanage, and Emma Kendrick. "The development of accurate experimental techniques for parameterization of multi-scale lithium-ion battery models." In preparation (2020).
 
