@@ -15,35 +15,6 @@ model = pybamm.lithium_ion.DFN()
 # create geometry
 geometry = model.default_geometry
 
-# define OCP functions
-# data_cathode = pd.read_csv(
-#     pybamm.root_dir() +
-#     "/input/parameters/lithium-ion/cathodes/nmc_Chen2020/nmc_LGM50_ocp_Chen2020.csv",
-#     comment="#", skip_blank_lines=True
-# )
-
-# interpolated_OCP_cathode = interpolate.PchipInterpolator(
-#     data_cathode.to_numpy()[:, 0],
-#     data_cathode.to_numpy()[:, 1],
-#     extrapolate=True
-# )
-
-# dOCP_cathode = interpolated_OCP_cathode.derivative()
-
-# @primitive
-# def OCP_cathode(sto):
-#     b = - 0.012
-#     out = interpolated_OCP_cathode(sto + b)
-#     if np.size(out) == 1:
-#         out = np.array([out])[0]
-#     return out
-
-# def OCP_cathode_vjp(ans, sto):
-#     sto_shape = sto.shape
-#     return lambda g: np.full(sto_shape, g) * dOCP_cathode(sto)
-
-# defvjp(OCP_cathode, OCP_cathode_vjp)
-
 # load parameter values and process model and geometry
 param = pybamm.ParameterValues(
     chemistry={
@@ -56,10 +27,6 @@ param = pybamm.ParameterValues(
         "experiment": "1C_discharge_from_full_Chen2020",
     }
 )
-# param.update({
-#     "Negative electrode OCP [V]": OCP_anode,
-#     "Positive electrode OCP [V]": OCP_cathode,
-# })
 
 filename = "C2"
 
