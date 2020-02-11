@@ -20,9 +20,12 @@ Positive electrode Bruggeman coefficient (electrode),1.5,default,
 Positive electrode cation signed stoichiometry,-1,,
 Positive electrode electrons in reaction,1,,
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 Positive electrode reference exchange-current density [A.m-2(m3.mol)1.5],3.59E-6,Chen 2020,Be careful how we implement BV
 >>>>>>> #573 update final LGM50 parameters
+=======
+>>>>>>> #573 setup test as experiment, still fails to converge
 Reference OCP vs SHE in the positive electrode [V],,,
 Positive electrode charge transfer coefficient,0.5,Chen 2020,
 Positive electrode double-layer capacity [F.m-2],0.2,,
