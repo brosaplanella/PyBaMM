@@ -28,7 +28,7 @@ param = pybamm.ParameterValues(
     }
 )
 
-filename = "C2"
+filename = "15C"
 
 data_experiments = pd.read_csv(
     pybamm.root_dir() + "/results/LGM50/data/data" + filename + "_rest.csv"
@@ -44,7 +44,7 @@ param["Maximum concentration in positive electrode [mol.m-3]"] = cspmax
 param["Negative electrode Bruggeman coefficient"] = 1.5
 param["Positive electrode Bruggeman coefficient"] = 1.5
 param["Separator Bruggeman coefficient"] = 1.5
-param["Current function"] = pybamm.GetConstantCurrent(current=pybamm.Scalar(5 * 0.5))
+param["Current function"] = pybamm.GetConstantCurrent(current=pybamm.Scalar(5 * 1.5))
 
 param.process_model(model)
 param.process_geometry(geometry)
@@ -114,20 +114,9 @@ etan = pybamm.ProcessedVariable(
     model.variables['X-averaged negative electrode reaction overpotential [V]'], solution.t,
     solution.y, mesh=mesh
 )
-
-# etac = pybamm.ProcessedVariable(
-#     model.variables['X-averaged battery concentration overpotential [V]'], solution.t,
-#     solution.y, mesh=mesh
-# )
-# Dphis = pybamm.ProcessedVariable(
-#     model.variables['X-averaged battery solid phase ohmic losses [V]'], solution.t,
-#     solution.y, mesh=mesh
-# )
-# Dphie = pybamm.ProcessedVariable(
-#     model.variables['X-averaged battery electrolyte ohmic losses [V]'], solution.t,
-#     solution.y, mesh=mesh
-# )
-
+ce = pybamm.ProcessedVariable(
+    model.variables["Electrolyte concentration [mol.m-3]"], solution.t, solution.y, mesh=mesh
+)
 
 # solve model rest
 param["Current function"] = pybamm.GetConstantCurrent(current=pybamm.Scalar(0))
@@ -180,6 +169,9 @@ Ueq2 = pybamm.ProcessedVariable(
     model.variables['X-averaged battery open circuit voltage [V]'], solution2.t,
     solution2.y, mesh=mesh
 )
+ce2 = pybamm.ProcessedVariable(
+    model.variables["Electrolyte concentration [mol.m-3]"], solution2.t, solution2.y, mesh=mesh
+)
 
 data_discharge = np.transpose(np.vstack((
     time(solution.t), voltage(solution.t), c_s_p_nd(solution.t, x=1), c_s_n_nd(solution.t, x=0), etap(solution.t), etan(solution.t)
@@ -206,6 +198,16 @@ interpolated_voltage = interpolate.PchipInterpolator(
     data_full[:, 0],
     data_full[:, 1],
     extrapolate=True
+)
+
+ce_discharge = np.transpose(np.vstack((time(solution.t), ce(solution.t, x=np.linspace(0,1,100)))))
+ce_rest = np.transpose(np.vstack((time2(solution2.t), ce2(solution2.t, x=np.linspace(0,1,100)))))
+
+ce_full = np.vstack((ce_discharge, ce_rest))
+np.savetxt(
+    "results/LGM50/data/ce_" + filename + ".csv",
+    ce_full,
+    delimiter=",",
 )
 
 error = np.absolute(
