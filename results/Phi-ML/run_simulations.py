@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 
 pybamm.set_logging_level("INFO")
 
-
+filename = "C2_full_discharge_2h_rest"
 experiment = pybamm.Experiment(
     [
-        "Discharge at 1C until 2.5 V",
+        "Discharge at C/2 until 2.5 V",
         "Rest for 2 hours",
     ],
     period="10 seconds",
@@ -38,11 +38,27 @@ sim = pybamm.Simulation(
 )
 sim.solve()
 
-# Show all plots
-sim.plot()
-
-# Compare with experiments
+# Store data
 tau = param.process_symbol(pybamm.standard_parameters_lithium_ion.tau_discharge)
 
 voltage = sim.solution["Terminal voltage [V]"]
 time = sim.solution["Time [h]"]
+ce = sim.solution["Electrolyte concentration [mol.m-3]"]
+
+ce_store = np.transpose(
+        np.vstack((time(sim.solution.t), ce(sim.solution.t, x=np.linspace(0,1, 100))))
+)
+
+np.savetxt(
+    "results/Phi-ML/data/ce_" + filename + ".csv",
+    ce_store,
+    delimiter=",",
+    header="# First column is time in hours, the other columns are the variable values at each gridpoint being the second column x = 0"
+)
+
+# Sanity check that the data makes sense
+plt.figure(1)
+plt.plot(np.transpose(ce_store[:,1:]))
+
+# Show all plots
+sim.plot()
