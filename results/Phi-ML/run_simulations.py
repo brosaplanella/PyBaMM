@@ -61,7 +61,10 @@ tau = param.process_symbol(pybamm.standard_parameters_lithium_ion.tau_discharge)
 
 voltage = sim.solution["Terminal voltage [V]"]
 time = sim.solution["Time [h]"]
+<<<<<<< HEAD
 capacity = sim.solution["Discharge capacity [A.h]"]
+=======
+>>>>>>> generate full discharge data
 ce = sim.solution["Electrolyte concentration [mol.m-3]"]
 
 ce_store = np.transpose(
@@ -79,6 +82,7 @@ np.savetxt(
 plt.figure(1)
 plt.plot(np.transpose(ce_store[:,1:]))
 
+<<<<<<< HEAD
 plt.figure(num=2, figsize=(6, 4))
 plt.plot(time(sim.solution.t), voltage(sim.solution.t))
 plt.xlabel("Time [h]")
@@ -104,5 +108,7 @@ plt.savefig(
 )
 
 
+=======
+>>>>>>> generate full discharge data
 # Show all plots
 sim.plot()
