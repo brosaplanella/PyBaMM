@@ -6,14 +6,18 @@ import matplotlib.pyplot as plt
 
 pybamm.set_logging_level("INFO")
 
-filename = "C2_full_discharge_2h_rest"
+# filename = "C2_full_discharge_2h_rest"
+# experiment = pybamm.Experiment(
+#     ["Discharge at C/2 until 2.5 V", "Rest for 2 hours"],
+#     period="10 seconds",
+# )
+
+filename = "2C_pulse_1min_rest_1min"
 experiment = pybamm.Experiment(
-    [
-        "Discharge at C/2 until 2.5 V",
-        "Rest for 2 hours",
-    ],
+    ["Discharge at 2C for 1 minute or until 2.5 V", "Rest for 1 minute"] * 22,
     period="10 seconds",
 )
+
 model = pybamm.lithium_ion.DFN()
 param = pybamm.ParameterValues(chemistry=pybamm.parameter_sets.Chen2020)
 
