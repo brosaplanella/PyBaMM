@@ -83,11 +83,16 @@ plt.figure(1)
 plt.plot(np.transpose(ce_store[:,1:]))
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 plt.figure(num=2, figsize=(6, 4))
+=======
+plt.figure(2)
+>>>>>>> added GITT simulations
 plt.plot(time(sim.solution.t), voltage(sim.solution.t))
 plt.xlabel("Time [h]")
 plt.ylabel("Voltage [V]")
 
+<<<<<<< HEAD
 plt.tight_layout()
 
 plt.savefig(
@@ -110,5 +115,7 @@ plt.savefig(
 
 =======
 >>>>>>> generate full discharge data
+=======
+>>>>>>> added GITT simulations
 # Show all plots
 sim.plot()
