@@ -12,9 +12,21 @@ pybamm.set_logging_level("INFO")
 #     period="10 seconds",
 # )
 
-filename = "2C_pulse_1min_rest_1min"
+# filename = "2C_pulse_1min_rest_1min"
+# experiment = pybamm.Experiment(
+#     ["Discharge at 2C for 1 minute or until 2.5 V", "Rest for 1 minute"] * 22,
+#     period="10 seconds",
+# )
+
+# filename = "C10_pulse_150s_rest_1h"
+# experiment = pybamm.Experiment(
+#     ["Discharge at C/10 for 150 seconds or until 2.5 V", "Rest for 1 hour (1 minute period)"] * 200,
+#     period="10 seconds",
+# )
+
+filename = "C10_pulse_900s_rest_1h"
 experiment = pybamm.Experiment(
-    ["Discharge at 2C for 1 minute or until 2.5 V", "Rest for 1 minute"] * 22,
+    ["Discharge at C/10 for 900 seconds or until 2.5 V", "Rest for 1 hour (1 minute period)"] * 40,
     period="10 seconds",
 )
 
@@ -63,6 +75,11 @@ np.savetxt(
 # Sanity check that the data makes sense
 plt.figure(1)
 plt.plot(np.transpose(ce_store[:,1:]))
+
+plt.figure(2)
+plt.plot(time(sim.solution.t), voltage(sim.solution.t))
+plt.xlabel("Time [h]")
+plt.ylabel("Voltage [V]")
 
 # Show all plots
 sim.plot()
