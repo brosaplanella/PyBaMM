@@ -26,7 +26,7 @@ param["Positive electrode diffusivity [m2.s-1]"] = 4E-15
 param["Negative electrode diffusivity [m2.s-1]"] = 3.3E-14
 
 filename = "drive_cycle_1"
-param["Current function [A]"] = "[current data]US06"
+param["Current function [A]"] = "[current data]Artemis_Motorway"
 
 sim = pybamm.Simulation(
     model,
