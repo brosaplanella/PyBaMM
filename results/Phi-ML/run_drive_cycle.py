@@ -8,33 +8,10 @@ plt.rcParams.update({'font.size': 8})
 
 pybamm.set_logging_level("INFO")
 
-filename = "C2_full_discharge_2h_rest"
-experiment = pybamm.Experiment(
-    ["Discharge at C/2 until 2.5 V", "Rest for 2 hours"],
-    period="10 seconds",
-)
-
-# filename = "2C_pulse_1min_rest_1min"
-# experiment = pybamm.Experiment(
-#     ["Discharge at 2C for 1 minute or until 2.5 V", "Rest for 1 minute"] * 22,
-#     period="10 seconds",
-# )
-
-# filename = "C10_pulse_150s_rest_1h"
-# experiment = pybamm.Experiment(
-#     ["Discharge at C/10 for 150 seconds or until 2.5 V", "Rest for 1 hour (1 minute period)"] * 200,
-#     period="10 seconds",
-# )
-
-# filename = "C10_pulse_900s_rest_1h"
-# experiment = pybamm.Experiment(
-#     ["Discharge at C/10 for 900 seconds or until 2.5 V", "Rest for 1 hour (1 minute period)"] * 40 + ["Charge at C/10 for 900 seconds or until 4.2 V", "Rest for 1 hour (1 minute period)"] * 40,
-#     period="10 seconds",
-# )
 
 model = pybamm.lithium_ion.DFN()
 param = pybamm.ParameterValues(chemistry=pybamm.parameter_sets.Chen2020)
-
+# param = pybamm.ParameterValues(chemistry=pybamm.parameter_sets.Marquis2019)
 cspmax = 50483 * 1.25  #1.25
 csnmax = 29583 * 1.13  #1.13
 
@@ -48,11 +25,15 @@ param["Separator Bruggeman coefficient (electrolyte)"] = 1.5
 param["Positive electrode diffusivity [m2.s-1]"] = 4E-15
 param["Negative electrode diffusivity [m2.s-1]"] = 3.3E-14
 
+filename = "drive_cycle_1"
+# param["Current function [A]"] = "[current data]LGM50_neg"
+
+param["Current function [A]"] = "[current data]US06"
+
 sim = pybamm.Simulation(
     model,
     parameter_values=param,
-    experiment=experiment,
-    solver=pybamm.CasadiSolver()
+    solver=pybamm.CasadiSolver(mode="fast")
 )
 sim.solve()
 
@@ -84,25 +65,19 @@ plt.plot(time(sim.solution.t), voltage(sim.solution.t))
 plt.xlabel("Time [h]")
 plt.ylabel("Voltage [V]")
 
-plt.tight_layout()
-
-plt.savefig(
-    "/home/ferranbrosa/LGM50/figures/GITT_t_V.png",
-    dpi=300
-)
-
 plt.figure(num=3, figsize=(6, 4))
-plt.plot(capacity(sim.solution.t), voltage(sim.solution.t))
-plt.xlabel("Capacity [A h]")
-plt.ylabel("Voltage [V]")
+plt.plot(time(sim.solution.t), capacity(sim.solution.t))
+plt.xlabel("Time [h]")
+plt.ylabel("Discharge capacity [Ah]")
 
 plt.tight_layout()
 
-plt.savefig(
-    "/home/ferranbrosa/LGM50/figures/GITT_cap_V.png",
-    dpi=300
-)
+print(capacity(sim.solution.t[-1]))
 
+# plt.savefig(
+#     "/home/ferranbrosa/LGM50/figures/GITT_t_V.png",
+#     dpi=300
+# )
 
 # Show all plots
 sim.plot()
