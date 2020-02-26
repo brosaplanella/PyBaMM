@@ -12,18 +12,18 @@ pybamm.set_logging_level("INFO")
 model = pybamm.lithium_ion.DFN()
 param = pybamm.ParameterValues(chemistry=pybamm.parameter_sets.Chen2020)
 # param = pybamm.ParameterValues(chemistry=pybamm.parameter_sets.Marquis2019)
-cspmax = 50483 * 1.25  #1.25
-csnmax = 29583 * 1.13  #1.13
+# cspmax = 50483 * 1.25  #1.25
+# csnmax = 29583 * 1.13  #1.13
 
-param["Initial concentration in negative electrode [mol.m-3]"] = 0.90 * csnmax
-param["Initial concentration in positive electrode [mol.m-3]"] = 0.26 * cspmax
-param["Maximum concentration in negative electrode [mol.m-3]"] = csnmax
-param["Maximum concentration in positive electrode [mol.m-3]"] = cspmax
-param["Negative electrode Bruggeman coefficient (electrolyte)"] = 1.5
-param["Positive electrode Bruggeman coefficient (electrolyte)"] = 1.5
-param["Separator Bruggeman coefficient (electrolyte)"] = 1.5
-param["Positive electrode diffusivity [m2.s-1]"] = 4E-15
-param["Negative electrode diffusivity [m2.s-1]"] = 3.3E-14
+# param["Initial concentration in negative electrode [mol.m-3]"] = 0.90 * csnmax
+# param["Initial concentration in positive electrode [mol.m-3]"] = 0.26 * cspmax
+# param["Maximum concentration in negative electrode [mol.m-3]"] = csnmax
+# param["Maximum concentration in positive electrode [mol.m-3]"] = cspmax
+# param["Negative electrode Bruggeman coefficient (electrolyte)"] = 1.5
+# param["Positive electrode Bruggeman coefficient (electrolyte)"] = 1.5
+# param["Separator Bruggeman coefficient (electrolyte)"] = 1.5
+# param["Positive electrode diffusivity [m2.s-1]"] = 4E-15
+# param["Negative electrode diffusivity [m2.s-1]"] = 3.3E-14
 
 filename = "drive_cycle_1"
 param["Current function [A]"] = "[current data]Artemis_Motorway"
