@@ -27,7 +27,6 @@ Chen2020
     for parameterization of multi-scale lithium-ion battery models." In preparation
     (2020).
 
-
 Lead-acid
 ---------
 Sulzer2019
